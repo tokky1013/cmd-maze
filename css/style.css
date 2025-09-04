@@ -13,7 +13,8 @@ body {
     flex-direction: column;
     min-width: 450px;
     height: 100svh;
-
+}
+body * {
     font-size: 14px;
     font-family: "MS Gothic", "ＭＳ ゴシック", monospace;
 }
@@ -27,12 +28,12 @@ header .tab {
     margin: 8px 8px 0;
     padding: 5px 10px;
     border-radius: 10px 10px 0 0;
-    width: 300px;
+    width: 225px;
 
     display: flex;
     align-items: center;
     gap: 10px;
-
+    
     font-size: 14px;
     color: white;
 }
