@@ -15,7 +15,7 @@ body {
     height: 100svh;
 }
 body * {
-    font-size: 14px;
+    font-size: 18px;
     font-family: "MS Gothic", "ＭＳ ゴシック", monospace;
 }
 
@@ -25,7 +25,7 @@ header {
 
 header .tab {
     background-color: var(--main-background-color-1);
-    margin: 8px 8px 0;
+    margin: 8px 7px 0;
     padding: 5px 10px;
     border-radius: 10px 10px 0 0;
     width: 225px;
@@ -34,7 +34,7 @@ header .tab {
     align-items: center;
     gap: 10px;
     
-    font-size: 14px;
+    font-size: 16px;
     color: white;
 }
 header .tab div {
@@ -42,13 +42,16 @@ header .tab div {
 }
 
 header .tab-img {
-    padding-top: 10px;
-    margin: 0 5px;
+    padding-top: 5px;
+    margin: auto 5px;
+    height: 16px;
+    width: 16px;
 }
 
 header .vl {
     color: #3C3C3C;
-    padding-top: 10px;
+    padding-top: 5px;
+    margin: auto 0;
     font-size: 20px;
 }
 
