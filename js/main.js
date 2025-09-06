@@ -18,8 +18,10 @@ function resizeDisplay() {
 
     const charSize = getCharSize($cmdWindow);
 
-    const boxWidth = $cmdWindow.innerWidth() - 10;
-    const boxHeight = $cmdWindow.innerHeight() - $('#cmd-window div:first').outerHeight(true) - 20;
+    const rectCmdWindow = $cmdWindow[0].getBoundingClientRect();
+    const rectDiv = $('#cmd-window div:first')[0].getBoundingClientRect();
+    const boxWidth = rectCmdWindow.width - 10;
+    const boxHeight = rectCmdWindow.height - rectDiv.height - 20;
 
     displaySize.width = Math.floor(boxWidth / charSize.width);
     displaySize.height = Math.floor(boxHeight / charSize.height);
