@@ -1,3 +1,6 @@
+const version = '1.0.0';
+const mazeSize = [7, 7];
+
 let isSmartPhone;
 
 
@@ -12,4 +15,7 @@ $(function () {
     } else {
         isSmartPhone = false;
     }
+
+    $('#version').text(version);
+    $('#maze-size').text(mazeSize[0] + ' x ' + mazeSize[1]);
 });
