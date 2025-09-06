@@ -11,16 +11,28 @@ body {
     color: var(--main-color-0);
     display: flex;
     flex-direction: column;
-    min-width: 390px;
-    height: 100svh;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
 body *:not(.tab *) {
     font-size: 18px;
     font-family: "MS Gothic", "ＭＳ ゴシック", monospace;
 }
 
+body.smartphone {
+    zoom: 0.8;
+}
+
+img {
+    -webkit-user-drag: none;
+}
+
 header {
     display: flex;
+    user-select: none;
 }
 
 header .tab {
@@ -44,8 +56,8 @@ header .tab div {
 header .tab-img {
     padding-top: 5px;
     margin: auto 5px;
-    height: 16px;
-    width: 16px;
+    height: 15px;
+    width: 15px;
 }
 
 header .vl {
@@ -61,7 +73,7 @@ header .spacer {
 
 header .window-img {
     display: block;
-    margin: auto 10px;
+    margin: auto 15px;
     width: 17px;
     height: 17px;
 }
@@ -80,6 +92,10 @@ header .window-img.close {
     background-color: var(--main-background-color-1);
     flex: 1;
 }
+#cmd-window::selection {
+    background-color: white;
+    color: black;
+}
 
 #cmd-window pre {
     margin: 0;
@@ -88,4 +104,12 @@ header .window-img.close {
 /* その他 */
 .flex-1 {
     flex: 1;
+}
+
+.backslash::before {
+    content: "\\";
+    font-family: Arial;
+    display: inline-block;
+    width: 9px;
+    text-align: center;
 }
