@@ -116,6 +116,7 @@ $(function () {
 
     resizeDisplay();
 
+    // ディスプレイのリサイズ
     $(window).on("resize", function () {
         resizeDisplay();
     });
