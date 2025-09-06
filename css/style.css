@@ -22,10 +22,6 @@ body *:not(.tab *) {
     font-family: "MS Gothic", "ＭＳ ゴシック", monospace;
 }
 
-body.smartphone {
-    zoom: 0.8;
-}
-
 img {
     -webkit-user-drag: none;
 }
@@ -56,8 +52,8 @@ header .tab div {
 header .tab-img {
     padding-top: 5px;
     margin: auto 5px;
-    height: 15px;
     width: 15px;
+    height: 15px;
 }
 
 header .vl {
@@ -87,10 +83,16 @@ header .window-img.close {
 }
 
 #cmd-window {
-    width: 100%;
+    width: calc(100% - 10px);
     padding: 10px 5px;
     background-color: var(--main-background-color-1);
     flex: 1;
+    overflow-y: scroll;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+#cmd-window::-webkit-scrollbar {
+    display: none;
 }
 #cmd-window::selection {
     background-color: white;
