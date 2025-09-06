@@ -111,10 +111,14 @@ header .window-img.close {
     flex: 1;
 }
 
-.backslash::before {
-    content: "\\";
-    font-family: Arial;
+.backslash {
+    font-family: Arial !important;
     display: inline-block;
     width: 9px;
     text-align: center;
+}
+
+.backslash.selected {
+    background-color: white;
+    color: black;
 }

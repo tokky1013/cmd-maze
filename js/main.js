@@ -27,9 +27,9 @@ function resizeDisplay() {
     displaySize.height = Math.floor(boxHeight / charSize.height);
 
     // 行数の調整
-    if(displaySize.height > prevHeight) {
+    if (displaySize.height > prevHeight) {
         // 高さが広がった場合
-        for (let i = prevHeight; i < displaySize.height ; i++) {
+        for (let i = prevHeight; i < displaySize.height; i++) {
             const $row = $('<div></div>').attr('id', 'row-' + i); // idを設定
 
             for (let j = 0; j < prevWidth; j++) {
@@ -41,7 +41,7 @@ function resizeDisplay() {
             }
             $('#display').append($row);
         }
-    } else if(displaySize.height < prevHeight) {
+    } else if (displaySize.height < prevHeight) {
         // 高さが狭まった場合
         for (let i = displaySize.height; i < prevHeight; i++) {
             $('#row-' + i).remove();
@@ -49,9 +49,9 @@ function resizeDisplay() {
     }
 
     // 列数の調整
-    if(displaySize.width > prevWidth) {
+    if (displaySize.width > prevWidth) {
         // 幅が広がった場合
-        for (let i = 0; i < displaySize.height ; i++) {
+        for (let i = 0; i < displaySize.height; i++) {
             const $row = $('#row-' + i);
 
             for (let j = prevWidth; j < displaySize.width; j++) {
@@ -62,9 +62,9 @@ function resizeDisplay() {
                 $row.append($span);
             }
         }
-    } else if(displaySize.width < prevWidth) {
+    } else if (displaySize.width < prevWidth) {
         // 幅が狭まった場合
-        for (let i = 0; i < displaySize.height ; i++) {
+        for (let i = 0; i < displaySize.height; i++) {
             for (let j = displaySize.width; j < prevWidth; j++) {
                 $('#char-' + i + '-' + j).remove();
             }
@@ -83,9 +83,9 @@ function resizeDisplay() {
 
         // getBoundingClientRect でサブピクセルまで取得
         let rect = $span[0].getBoundingClientRect();
-        let charWidth  = rect.width;
+        let charWidth = rect.width;
         let charHeight = rect.height;
-        
+
         $span.remove();
 
         return { width: charWidth, height: charHeight };
@@ -103,7 +103,7 @@ $(function () {
 
     if (ua.match(/iPhone|Android.+Mobile/)) {
         scale = smartPhoneScalse;
-        $('body').css({zoom: scale});
+        $('body').css({ zoom: scale });
         isSmartPhone = true;
     } else if (ua.match(/iPad|Android/)) {
         scale = 1;
@@ -124,5 +124,25 @@ $(function () {
     });
     $(window).on("orientationchange", function () {
         setTimeout(resizeDisplay, 300);
+    });
+
+    // バックスラッシュの選択
+    $(document).on("selectionchange", function () {
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+
+            // jQueryオブジェクトに変換
+            const $target = $(".backslash");
+
+            // 選択範囲が要素と交差しているか確認
+            for (let i = 0; i < $target.length; i++) {
+                if (range.intersectsNode($target[i])) {
+                    $target.eq(i).addClass("selected");
+                } else {
+                    $target.eq(i).removeClass("selected");
+                }
+            }
+        }
     });
 });
