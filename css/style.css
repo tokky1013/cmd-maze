@@ -16,6 +16,9 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
+    
+    overscroll-behavior: none;
+    overflow: hidden;
 }
 body *:not(.tab *) {
     font-size: 18px;
