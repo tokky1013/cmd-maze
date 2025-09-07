@@ -1,5 +1,7 @@
+let game;
+
 class Game {
-    constructor(mazeSize, fps, pathWidth = 1, wallHeight = 1, wallThickness = 0.3) {
+    constructor(mazeSize, fps, pathWidth = 1, wallHeight = 1, wallThickness = 0.3, cameraHeight = 0.7) {
         this.display = new Display();
         this.field = [];
         this.mazeSize = mazeSize;
@@ -7,6 +9,41 @@ class Game {
         this.pathWidth = pathWidth;
         this.wallHeight = wallHeight;
         this.wallThickness = wallThickness;
+        this.cameraHeight = cameraHeight;
+
+
+        this.player = new Player(
+            [0, 0, 1 + ((this.pathWidth + this.wallThickness) * (this.mazeSize[1] + 2) / 2) / Math.tan(this.display.verticalViewingAngle / 2)],
+            {
+                theta: Math.PI,
+                phi: Math.PI / 2
+            },
+            0.3
+        );
+    }
+
+    start() {
+        setInterval(function () {
+            game.display.showView(game.field, game.player.cameraPos, game.player.cameraDir);
+        }, this.ds * 1000);
+        this.field = this.generateMaze();
+
+        this.viewpointTransitionTime = 2;
+        this.dCameraPos = this.player.cameraPos.minus([0, ((this.pathWidth + this.wallThickness) * this.mazeSize[1] + this.pathWidth) / 2, this.cameraHeight]).multiplyBy(-this.ds / this.viewpointTransitionTime);
+        this.dTheta = (Math.PI / 2 - this.player.cameraDir.theta) * this.ds / this.viewpointTransitionTime;
+        this.dPhi = (Math.PI / 2 - this.player.cameraDir.phi) * this.ds / this.viewpointTransitionTime;
+
+        setTimeout(function () {
+            game.timer = setInterval(function () {
+                game.player.cameraPos = game.player.cameraPos.plus(game.dCameraPos);
+                game.player.cameraDir.theta += game.dTheta;
+                game.player.cameraDir.phi += game.dPhi;
+            }, game.ds * 1000);
+
+            setTimeout(function () {
+                clearInterval(game.timer);
+            }, game.viewpointTransitionTime * 1000);
+        }, 1000);
     }
 
     generateMaze() {
@@ -82,12 +119,17 @@ class Game {
             [-this.pathWidth / 2, mazeHeight / 2 + this.pathWidth, this.wallHeight],
             mainColor0
         ));
+        objects.push(new AABB(
+            [-this.pathWidth / 2 - this.wallThickness, mazeHeight / 2 + this.pathWidth, 0],
+            [this.pathWidth / 2 + this.wallThickness, mazeHeight / 2 + this.pathWidth + this.wallThickness, this.wallHeight],
+            mainColor0
+        ));
 
         // holizontalWallsを描画
         for (let i = 0; i < holizontalWalls.length; i++) {
             const row = holizontalWalls[i];
             for (let j = 0; j < row.length; j++) {
-                if(row[j]) {
+                if (row[j]) {
                     objects.push(new AABB(
                         [-mazeWidth / 2 + (this.pathWidth + this.wallThickness) * j, -mazeHeight / 2 + (this.pathWidth + this.wallThickness) * (i + 1), 0],
                         [-mazeWidth / 2 + (this.pathWidth + this.wallThickness) * (j + 1) + this.wallThickness, -mazeHeight / 2 + (this.pathWidth + this.wallThickness) * (i + 1) + this.wallThickness, this.wallHeight],
@@ -101,7 +143,7 @@ class Game {
         for (let i = 0; i < verticalWalls.length; i++) {
             const row = verticalWalls[i];
             for (let j = 0; j < row.length; j++) {
-                if(row[j]) {
+                if (row[j]) {
                     objects.push(new AABB(
                         [-mazeWidth / 2 + (this.pathWidth + this.wallThickness) * (j + 1), -mazeHeight / 2 + (this.pathWidth + this.wallThickness) * i, 0],
                         [-mazeWidth / 2 + (this.pathWidth + this.wallThickness) * (j + 1) + this.wallThickness, -mazeHeight / 2 + (this.pathWidth + this.wallThickness) * (i + 1) + this.wallThickness, this.wallHeight],
@@ -111,7 +153,23 @@ class Game {
             }
         }
 
-        return objects;
+        let tryangle1 = new HolizontalTryangle(
+            [this.pathWidth * 0.4, mazeHeight / 2 + this.pathWidth * 0.8],
+            [-this.pathWidth * 0.4, mazeHeight / 2 + this.pathWidth * 0.8],
+            [0, mazeHeight / 2 + this.pathWidth * 0.2],
+            mainColor1
+        );
+        let tryangle2 = new HolizontalTryangle(
+            [this.pathWidth * 0.4, -mazeHeight / 2 - this.pathWidth * 0.2],
+            [-this.pathWidth * 0.4, -mazeHeight / 2 - this.pathWidth * 0.2],
+            [0, -mazeHeight / 2 - this.pathWidth * 0.8],
+            mainColor2
+        );
+
+        return [
+            objects,
+            [tryangle1, tryangle2]
+        ];
 
 
         // let maze = Array.from({ length: this.mazeSize[1] * 2 + 1 }, () => Array(this.mazeSize[0] * 2 + 1).fill('    '));
@@ -186,8 +244,15 @@ class Game {
 }
 
 // プレイヤー
+// 形は無限に長い円筒形
 class Player {
-    constructor() {
+    constructor(cameraPos, cameraDir, width) {
+        if (Array.isArray(cameraPos)) {
+            cameraPos = new Vector(cameraPos);
+        }
 
+        this.cameraPos = cameraPos;
+        this.cameraDir = cameraDir;
+        this.width = width;
     }
 }

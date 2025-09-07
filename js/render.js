@@ -2,7 +2,11 @@
 // ベクトル
 class Vector {
     constructor(vector) {
-        this.data = vector;
+        if(vector instanceof Vector) {
+            this.data = vector.data;
+        } else {
+            this.data = vector;
+        }
     }
 
     plus(other) {
@@ -126,7 +130,11 @@ class Vector {
 // 行列
 class Tensor {
     constructor(tensor) {
-        this.data = tensor;
+        if(tensor instanceof Tensor) {
+            this.data = tensor.data;
+        } else {
+            this.data = tensor;
+        }
     }
 
     dot(other) {
@@ -225,6 +233,60 @@ class AABB {
     }
 }
 
+class HolizontalTryangle {
+    constructor(p1, p2, p3, color) {
+        if(Array.isArray(p1)) {
+            p1 = new Vector(p1);
+        }
+        if(Array.isArray(p2)) {
+            p2 = new Vector(p2);
+        }
+        if(Array.isArray(p3)) {
+            p3 = new Vector(p3);
+        }
+
+        if(p1.data.length === 2) {
+            p1.data.push(0);
+        }
+        if(p2.data.length === 2) {
+            p2.data.push(0);
+        }
+        if(p3.data.length === 2) {
+            p3.data.push(0);
+        }
+
+        this.p1 = p1;
+        this.p2 = p2;
+        this.p3 = p3;
+            
+        this.color = color;
+    }
+
+    isRayIntersect(rayOrigin, rayDir) {
+        rayOrigin = new Vector(rayOrigin);
+        rayDir = new Vector(rayDir);
+        let t = -rayOrigin.data[2] / rayDir.data[2];
+        if(rayDir.data[2] === 0 || t < 0) return false;
+
+        let p = rayOrigin.plus(rayDir.multiplyBy(t));
+
+        let v0 = this.p3.minus(this.p1);
+        let v1 = this.p2.minus(this.p1);
+        let v2 = p.minus(this.p1);
+
+        let dot00 = v0.dot(v0);
+        let dot01 = v0.dot(v1);
+        let dot02 = v0.dot(v2);
+        let dot11 = v1.dot(v1);
+        let dot12 = v1.dot(v2);
+
+        let invDen = 1 / (dot00 * dot11 - dot01 * dot01);
+        let u = (dot11 * dot02 - dot01 * dot12) * invDen;
+        let v = (dot00 * dot12 - dot01 * dot02) * invDen;
+
+        return u >= 0 && v >= 0 && u + v <= 1;
+    }
+}
 // --------その他--------
 class Display {
     constructor() {
