@@ -29,19 +29,28 @@ class Game {
         this.field = this.generateMaze();
 
         this.viewpointTransitionTime = 2;
-        this.dCameraPos = this.player.cameraPos.minus([0, ((this.pathWidth + this.wallThickness) * this.mazeSize[1] + this.pathWidth) / 2, this.cameraHeight]).multiplyBy(-this.ds / this.viewpointTransitionTime);
-        this.dTheta = (Math.PI / 2 - this.player.cameraDir.theta) * this.ds / this.viewpointTransitionTime;
-        this.dPhi = (Math.PI / 2 - this.player.cameraDir.phi) * this.ds / this.viewpointTransitionTime;
+        this.dCameraPos = this.player.cameraPos.minus([0, ((this.pathWidth + this.wallThickness) * this.mazeSize[1] + this.pathWidth) / 2, this.cameraHeight]).multiplyBy(-1 / this.viewpointTransitionTime);
+        this.dTheta = (Math.PI / 2 - this.player.cameraDir.theta) / this.viewpointTransitionTime;
+        this.dPhi = (Math.PI / 2 - this.player.cameraDir.phi) / this.viewpointTransitionTime;
 
         setTimeout(function () {
+            game.timeAnimationStart = new Date().getTime();
+            game.initialCameraPos = game.player.cameraPos;
+            game.initialCameraDirTheta = game.player.cameraDir.theta;
+            game.initialCameraDirPhi = game.player.cameraDir.phi;
+
             game.timer = setInterval(function () {
-                game.player.cameraPos = game.player.cameraPos.plus(game.dCameraPos);
-                game.player.cameraDir.theta += game.dTheta;
-                game.player.cameraDir.phi += game.dPhi;
+                const timeDelta = (new Date().getTime() - game.timeAnimationStart) / 1000;
+                game.player.cameraPos = game.initialCameraPos.plus(game.dCameraPos.multiplyBy(timeDelta));
+                game.player.cameraDir.theta = game.initialCameraDirTheta + game.dTheta * timeDelta;
+                game.player.cameraDir.phi = game.initialCameraDirPhi + game.dPhi * timeDelta;
             }, game.ds * 1000);
 
             setTimeout(function () {
                 clearInterval(game.timer);
+                game.player.cameraPos = new Vector([0, ((game.pathWidth + game.wallThickness) * game.mazeSize[1] + game.pathWidth) / 2, game.cameraHeight]);
+                game.player.cameraDir.theta = Math.PI / 2;
+                game.player.cameraDir.phi = Math.PI / 2;
             }, game.viewpointTransitionTime * 1000);
         }, 1000);
     }

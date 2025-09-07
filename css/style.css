@@ -17,6 +17,8 @@ body {
     
     overscroll-behavior: none;
     overflow: hidden;
+    
+    user-select: none;
 }
 body *:not(.tab *) {
     font-size: 18px;
@@ -29,7 +31,6 @@ img {
 
 header {
     display: flex;
-    user-select: none;
 }
 
 header .tab {
