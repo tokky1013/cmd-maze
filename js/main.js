@@ -5,7 +5,7 @@ const FPS = 30;
 const SMARTPHONE_SCALE = 0.7;
 const PC_SCALE = 1;
 const SMARTPHONE_SENSITIVITY = 0.8;
-const PC_sensitivity = 1;
+const PC_SENSITIVITY = 1;
 
 let isSmartPhone;
 let scale;
