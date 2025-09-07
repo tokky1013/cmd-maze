@@ -80,11 +80,20 @@ $(function () {
     //     });
 
     // new Game(MAZE_SIZE, FPS).generateMaze();
+    
+    // display.showView(
+    //     [new Game(MAZE_SIZE, FPS).generateMaze()],
+    //     [0, 0, 15], 
+    //     {
+    //         theta: Math.PI,
+    //         phi: Math.PI / 2
+    //     });
+
     display.showView(
         [new Game(MAZE_SIZE, FPS).generateMaze()],
-        [0, 0, 15], 
+        [0, 7, 5], 
         {
-            theta: Math.PI,
-            phi: Math.PI / 2
+            theta: Math.PI * 0.75,
+            phi: Math.PI *0.9/ 2
         });
 });
