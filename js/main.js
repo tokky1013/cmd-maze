@@ -42,19 +42,18 @@ $(function () {
     // $('#maze-size').text(MAZE_SIZE[0] + ' x ' + MAZE_SIZE[1]);
     $('#time').text('00:00:00');
 
-    display = new Display();
-
-    // ディスプレイのリサイズ
-    $(window).on("resize", function () {
-        display.resize();
-    });
-    $(window).on("orientationchange", function () {
-        setTimeout(function() {display.resize();}, 300);
-    });
-
     // スタート
     game = new Game(MAZE_SIZE, FPS);
     game.start();
+    
+    // ディスプレイのリサイズ
+    $(window).on("resize", function () {
+        game.display.resize();
+    });
+    $(window).on("orientationchange", function () {
+        setTimeout(function() {game.display.resize();}, 300);
+    });
+
 
 
     // display.showView(

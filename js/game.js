@@ -51,6 +51,28 @@ class Game {
                 game.player.cameraPos = new Vector([0, ((game.pathWidth + game.wallThickness) * game.mazeSize[1] + game.pathWidth) / 2, game.cameraHeight]);
                 game.player.cameraDir.theta = Math.PI / 2;
                 game.player.cameraDir.phi = Math.PI / 2;
+
+                // 各種操作のイベントを設定
+                game.isDragging = false;
+
+                // 押した瞬間
+                $("#area").on("mousedown", function (e) {
+                    game.isDragging = true;
+                    game.firstCursorPositionX = e.clientX;
+                    game.firstCursorPositionY = e.clientY;
+                });
+
+                // 移動中
+                $(document).on("mousemove", function (e) {
+                    if (!game.isDragging) return;
+                    console.log("dragging:", e.clientX, e.clientY);
+                });
+
+                // 離した瞬間
+                $(document).on("mouseup", function (e) {
+                    game.isDragging = false;
+                });
+
             }, game.viewpointTransitionTime * 1000);
         }, 1000);
     }
