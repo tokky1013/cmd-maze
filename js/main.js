@@ -1,7 +1,9 @@
-const version = '1.0.0';
-const mazeSize = [7, 7];
-const smartPhoneScalse = 0.7;
-const pcScalse = 0.9;
+const VERSION = '1.0.0';
+const MAZE_SIZE = [7, 7];
+const FPS = 30;
+
+const SMARTPHONE_SCALE = 0.7;
+const PC_SCALE = 0.9;
 
 let isSmartPhone;
 let scale;
@@ -10,18 +12,21 @@ let mainColor0;
 let mainColor1;
 
 $(function () {
+    // カスタムプロパティを取得
     mainColor0 = $(':root').css('--main-color-0');
     mainColor1 = $(':root').css('--main-color-1');
+
+    // スマホかどうかの判定
     const ua = navigator.userAgent;
 
     if (ua.match(/iPhone|Android.+Mobile/)) {
-        scale = smartPhoneScalse;
+        scale = SMARTPHONE_SCALE;
         isSmartPhone = true;
     } else if (ua.match(/iPad|Android/)) {
-        scale = pcScalse;
+        scale = PC_SCALE;
         isSmartPhone = true;
     } else {
-        scale = pcScalse;
+        scale = PC_SCALE;
         isSmartPhone = false;
     }
     $('body').css({
@@ -30,8 +35,10 @@ $(function () {
         height: 'calc(100svh / ' + scale + ')',
     });
 
-    $('#version').text(version);
-    $('#maze-size').text(mazeSize[0] + ' x ' + mazeSize[1]);
+    // 表示
+    $('#version').text(VERSION);
+    $('#maze-size').text(MAZE_SIZE[0] + ' x ' + MAZE_SIZE[1]);
+    $('#time').text('00:00:00');
 
     display = new Display();
 
@@ -64,11 +71,20 @@ $(function () {
     });
 
 
+    // display.showView(
+    //     [[new AABB([-5, -3, -4], [5, -18, 4], mainColor0)]],
+    //     [6, 10, 10], 
+    //     {
+    //         theta: Math.PI *2/3,
+    //         phi: Math.PI *1.85  /3 
+    //     });
+
+    // new Game(MAZE_SIZE, FPS).generateMaze();
     display.showView(
-        [[new AABB([-5, -3, -4], [5, -18, 4], mainColor0)]],
-        [6, 10, 10], 
+        [new Game(MAZE_SIZE, FPS).generateMaze()],
+        [0, 0, 15], 
         {
-            theta: Math.PI *2/3,
-            phi: Math.PI *1.85  /3 
+            theta: Math.PI,
+            phi: Math.PI / 2
         });
 });

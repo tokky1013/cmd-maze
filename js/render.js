@@ -380,9 +380,3 @@ class Display {
         return { width: charWidth, height: charHeight };
     }
 }
-// プレイヤー
-class Player {
-    constructor() {
-
-    }
-}
