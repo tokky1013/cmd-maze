@@ -6,8 +6,12 @@ const pcScalse = 0.9;
 let isSmartPhone;
 let scale;
 let display;
+let mainColor0;
+let mainColor1;
 
 $(function () {
+    mainColor0 = $(':root').css('--main-color-0');
+    mainColor1 = $(':root').css('--main-color-1');
     const ua = navigator.userAgent;
 
     if (ua.match(/iPhone|Android.+Mobile/)) {
@@ -56,4 +60,11 @@ $(function () {
     });
 
 
+    display.showView(
+        [[new AABB([-5, -3, -4], [5, -18, 4], mainColor0)]],
+        [6, 10, 10], 
+        {
+            theta: Math.PI *2/3,
+            phi: Math.PI *1.85  /3 
+        });
 });

@@ -106,6 +106,10 @@ header .window-img.close {
     margin: 0;
 }
 
+#display {
+    color: transparent;
+}
+
 /* その他 */
 .flex-1 {
     flex: 1;

@@ -172,7 +172,7 @@ class Tensor {
 // --------3dモデル--------
 // AABB
 class AABB {
-    constructor(p1, p2) {
+    constructor(p1, p2, color) {
         if (p1 instanceof Vector) {
             p1 = p1.data;
         }
@@ -188,6 +188,8 @@ class AABB {
         }
         this.min = new Vector(min);
         this.max = new Vector(max);
+
+        this.color = color;
     }
 
     isRayIntersect(rayOrigin, rayDir) {
@@ -236,7 +238,60 @@ class Display {
     }
 
     showView(layers, cameraPos, cameraDir) {
-        
+        const dTheta = this.verticalViewingAngle / (this.displaySize.height - 1);
+        const dPhi = dTheta * this.charSize.width / this.charSize.height;
+
+        // z軸周りにphiだけ回転する回転行列
+        const T1 = new Tensor([
+            [Math.cos(cameraDir.phi), Math.sin(cameraDir.phi), 0],
+            [- Math.sin(cameraDir.phi), Math.cos(cameraDir.phi), 0],
+            [0, 0, 1]
+        ]);
+        const T2 = new Tensor([
+            [Math.sin(cameraDir.theta), 0, - Math.cos(cameraDir.theta)],
+            [0, 1, 0],
+            [Math.cos(cameraDir.theta), 0, Math.sin(cameraDir.theta)]
+        ]);
+        // 行列同士の掛け算を先に計算
+        const T = T1.dot(T2);
+
+        for (let i = 0; i < this.displaySize.height; i++) {
+            for (let j = 0; j < this.displaySize.width; j++) {
+                // 光線を用意
+                const rayTheta = Math.PI / 2 + (i - this.displaySize.height / 2) * dTheta;
+                const rayPhi = - (j - this.displaySize.width / 2) * dPhi;
+                let rayDir = [
+                    Math.sin(rayTheta) * Math.cos(rayPhi),
+                    - Math.sin(rayTheta) * Math.sin(rayPhi),
+                    Math.cos(rayTheta)
+                ];
+                // 回転
+                rayDir = T.dot(rayDir);
+                // console.log(rayDir)
+
+                // 光線が当たった先の色を取得
+                const rayColor = this.rayColor(layers, cameraPos, rayDir);
+                if(rayColor) {
+                    $('#char-' + i + '-' + j).css({color: rayColor});
+                } else {
+                    $('#char-' + i + '-' + j).css({color: 'transparent'});
+                }
+            }
+        }
+    }
+
+    rayColor(layers, rayOrigin, rayDir) {
+        for (let i = 0; i < layers.length; i++) {
+            const layer = layers[i];
+            for (let j = 0; j < layer.length; j++) {
+                const obj = layer[j];
+                
+                if (obj.isRayIntersect(rayOrigin, rayDir)) {
+                    return obj.color;
+                }
+            }
+        }
+        return null;
     }
 
     // 画面の生成/リサイズ
