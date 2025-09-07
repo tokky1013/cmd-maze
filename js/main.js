@@ -4,9 +4,12 @@ const FPS = 30;
 
 const SMARTPHONE_SCALE = 0.7;
 const PC_SCALE = 1;
+const SMARTPHONE_SENSITIVITY = 0.8;
+const PC_sensitivity = 1;
 
 let isSmartPhone;
 let scale;
+let sensitivity;
 let display;
 let mainColor0;
 let mainColor1;
@@ -23,12 +26,15 @@ $(function () {
 
     if (ua.match(/iPhone|Android.+Mobile/)) {
         scale = SMARTPHONE_SCALE;
+        sensitivity = SMARTPHONE_SENSITIVITY;
         isSmartPhone = true;
     } else if (ua.match(/iPad|Android/)) {
         scale = PC_SCALE;
+        sensitivity = PC_SENSITIVITY;
         isSmartPhone = true;
     } else {
         scale = PC_SCALE;
+        sensitivity = PC_SENSITIVITY;
         isSmartPhone = false;
     }
     $('body').css({
@@ -43,9 +49,9 @@ $(function () {
     $('#time').text('00:00:00');
 
     // スタート
-    game = new Game(MAZE_SIZE, FPS);
+    game = new Game(MAZE_SIZE, FPS, sensitivity);
     game.start();
-    
+
     // ディスプレイのリサイズ
     $(window).on("resize", function () {
         game.display.resize();

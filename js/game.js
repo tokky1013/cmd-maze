@@ -1,7 +1,7 @@
 let game;
 
 class Game {
-    constructor(mazeSize, fps, pathWidth = 1, wallHeight = 1, wallThickness = 0.3, cameraHeight = 0.7) {
+    constructor(mazeSize, fps, sensitivity, pathWidth = 1, wallHeight = 1, wallThickness = 0.3, cameraHeight = 0.7) {
         this.display = new Display();
         this.field = [];
         this.mazeSize = mazeSize;
@@ -11,6 +11,7 @@ class Game {
         this.wallThickness = wallThickness;
         this.cameraHeight = cameraHeight;
 
+        this.sensitivity = sensitivity;
 
         this.player = new Player(
             [0, 0, 1 + ((this.pathWidth + this.wallThickness) * (this.mazeSize[1] + 2) / 2) / Math.tan(this.display.verticalViewingAngle / 2)],
@@ -56,20 +57,46 @@ class Game {
                 game.isDragging = false;
 
                 // 押した瞬間
-                $("#area").on("mousedown", function (e) {
+                $("#cmd-window").on("mousedown", function (e) {
                     game.isDragging = true;
-                    game.firstCursorPositionX = e.clientX;
-                    game.firstCursorPositionY = e.clientY;
+                    game.initialCursorPositionX = e.clientX;
+                    game.initialCursorPositionY = e.clientY;
+                    game.initialCameraDirTheta = game.player.cameraDir.theta;
+                    game.initialCameraDirPhi = game.player.cameraDir.phi;
+                });
+
+                $("#cmd-window").on("touchstart", function (e) {
+                    game.isDragging = true;
+                    const touch = e.originalEvent.touches[0];
+                    game.initialCursorPositionX = touch.clientX;
+                    game.initialCursorPositionY = touch.clientY;
+                    game.initialCameraDirTheta = game.player.cameraDir.theta;
+                    game.initialCameraDirPhi = game.player.cameraDir.phi;
                 });
 
                 // 移動中
                 $(document).on("mousemove", function (e) {
                     if (!game.isDragging) return;
-                    console.log("dragging:", e.clientX, e.clientY);
+                    const boxWidth = $('#cmd-window')[0].getBoundingClientRect().width;
+
+                    const radPerPx = game.sensitivity * Math.PI / boxWidth
+
+                    game.player.cameraDir.phi = game.initialCameraDirPhi + radPerPx * (e.clientX - game.initialCursorPositionX);
+                    game.player.cameraDir.theta = game.initialCameraDirTheta - radPerPx * (e.clientY - game.initialCursorPositionY);
+                });
+                $(document).on("touchmove", function (e) {
+                    if (!game.isDragging) return;
+                    const boxWidth = $('#cmd-window')[0].getBoundingClientRect().width;
+
+                    const radPerPx = game.sensitivity * Math.PI / boxWidth
+
+                    const touch = e.originalEvent.touches[0];
+                    game.player.cameraDir.phi = game.initialCameraDirPhi + radPerPx * (touch.clientX - game.initialCursorPositionX);
+                    game.player.cameraDir.theta = game.initialCameraDirTheta - radPerPx * (touch.clientY - game.initialCursorPositionY);
                 });
 
                 // 離した瞬間
-                $(document).on("mouseup", function (e) {
+                $(document).on("mouseup touchend", function (e) {
                     game.isDragging = false;
                 });
 
