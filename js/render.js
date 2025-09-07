@@ -304,18 +304,18 @@ class Display {
         const dPhi = dTheta * this.charSize.width / this.charSize.height;
 
         // z軸周りにphiだけ回転する回転行列
-        const T1 = new Tensor([
+        const TRot1 = new Tensor([
             [Math.cos(cameraDir.phi), Math.sin(cameraDir.phi), 0],
             [- Math.sin(cameraDir.phi), Math.cos(cameraDir.phi), 0],
             [0, 0, 1]
         ]);
-        const T2 = new Tensor([
+        const TRot2 = new Tensor([
             [Math.sin(cameraDir.theta), 0, - Math.cos(cameraDir.theta)],
             [0, 1, 0],
             [Math.cos(cameraDir.theta), 0, Math.sin(cameraDir.theta)]
         ]);
         // 行列同士の掛け算を先に計算
-        const T = T1.dot(T2);
+        const TRot = TRot1.dot(TRot2);
 
         for (let i = 0; i < this.displaySize.height; i++) {
             for (let j = 0; j < this.displaySize.width; j++) {
@@ -328,7 +328,7 @@ class Display {
                     Math.cos(rayTheta)
                 ];
                 // 回転
-                rayDir = T.dot(rayDir);
+                rayDir = TRot.dot(rayDir);
                 // console.log(rayDir)
 
                 // 光線が当たった先の色を取得

@@ -6,6 +6,7 @@ const SMARTPHONE_SCALE = 0.7;
 const PC_SCALE = 1;
 const SMARTPHONE_SENSITIVITY = 0.8;
 const PC_SENSITIVITY = 1;
+const VELOCITY = 1.5;
 
 let isSmartPhone;
 let scale;
@@ -49,7 +50,7 @@ $(function () {
     $('#time').text('00:00:00');
 
     // スタート
-    game = new Game(MAZE_SIZE, FPS, sensitivity);
+    game = new Game(MAZE_SIZE, FPS, sensitivity, VELOCITY);
     game.start();
 
     // ディスプレイのリサイズ

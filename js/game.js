@@ -1,7 +1,7 @@
 let game;
 
 class Game {
-    constructor(mazeSize, fps, sensitivity, pathWidth = 1, wallHeight = 1, wallThickness = 0.3, cameraHeight = 0.7) {
+    constructor(mazeSize, fps, sensitivity, velocity, pathWidth = 1, wallHeight = 1, wallThickness = 0.3, cameraHeight = 0.7) {
         this.display = new Display();
         this.field = [];
         this.mazeSize = mazeSize;
@@ -12,6 +12,11 @@ class Game {
         this.cameraHeight = cameraHeight;
 
         this.sensitivity = sensitivity;
+        this.velocity = velocity;
+
+        this.isStarted = false;
+        this.moving = false;
+        this.movingDir = [0, 0];
 
         this.player = new Player(
             [0, 0, 1 + ((this.pathWidth + this.wallThickness) * (this.mazeSize[1] + 2) / 2) / Math.tan(this.display.verticalViewingAngle / 2)],
@@ -26,6 +31,17 @@ class Game {
     start() {
         setInterval(function () {
             game.display.showView(game.field, game.player.cameraPos, game.player.cameraDir);
+            if (game.isStarted) {
+                if(game.moving) {
+                    const TRot = new Tensor([
+                        [Math.cos(game.player.cameraDir.phi), Math.sin(game.player.cameraDir.phi)],
+                        [-Math.sin(game.player.cameraDir.phi), Math.cos(game.player.cameraDir.phi)]
+                    ]);
+                    const dCameraPos = TRot.dot(game.movingDir).multiplyBy(game.velocity * game.ds);
+                    dCameraPos.data.push(0);
+                    game.player.cameraPos = game.player.cameraPos.plus(dCameraPos);
+                }
+            }
         }, this.ds * 1000);
         this.field = this.generateMaze();
 
@@ -54,6 +70,7 @@ class Game {
                 game.player.cameraDir.phi = Math.PI / 2;
 
                 // 各種操作のイベントを設定
+                // ----視点移動----
                 game.isDragging = false;
 
                 // 押した瞬間
@@ -100,6 +117,30 @@ class Game {
                     game.isDragging = false;
                 });
 
+                // ----移動----
+                $(document).on("keydown", function (e) {
+                    if (e.code === "KeyW") {
+                        game.moving = true;
+                        game.movingDir = [1, 0];
+                    } else if (e.code === "KeyA") {
+                        game.moving = true;
+                        game.movingDir = [0, -1];
+                    } else if (e.code === "KeyS") {
+                        game.moving = true;
+                        game.movingDir = [-1, 0];
+                    } else if (e.code === "KeyD") {
+                        game.moving = true;
+                        game.movingDir = [0, 1];
+                    }
+                });
+
+                $(document).on("keyup", function (e) {
+                    if (e.code === "KeyW" || e.code === "KeyA"|| e.code === "KeyS"|| e.code === "KeyD") {
+                        game.moving = false;
+                    }
+                });
+
+                game.isStarted = true;
             }, game.viewpointTransitionTime * 1000);
         }, 1000);
     }
@@ -211,12 +252,14 @@ class Game {
             }
         }
 
+        // スタート地点の三角形
         let tryangle1 = new HolizontalTryangle(
-            [this.pathWidth * 0.4, mazeHeight / 2 + this.pathWidth * 0.8],
-            [-this.pathWidth * 0.4, mazeHeight / 2 + this.pathWidth * 0.8],
-            [0, mazeHeight / 2 + this.pathWidth * 0.2],
+            [this.pathWidth * 0.4, mazeHeight / 2 + this.pathWidth * 0.6 - this.wallThickness / 2],
+            [-this.pathWidth * 0.4, mazeHeight / 2 + this.pathWidth * 0.6 - this.wallThickness / 2],
+            [0, mazeHeight / 2 - this.wallThickness / 2],
             mainColor1
         );
+        // ゴールの三角形
         let tryangle2 = new HolizontalTryangle(
             [this.pathWidth * 0.4, -mazeHeight / 2 - this.pathWidth * 0.2],
             [-this.pathWidth * 0.4, -mazeHeight / 2 - this.pathWidth * 0.2],
