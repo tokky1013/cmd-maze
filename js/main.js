@@ -24,7 +24,11 @@ $(function () {
         scale = pcScalse;
         isSmartPhone = false;
     }
-    $('body').css({ zoom: scale });
+    $('body').css({
+        transform: 'scale(' + scale + ')',
+        width: 'calc(100svw / ' + scale + ')',
+        height: 'calc(100svh / ' + scale + ')',
+    });
 
     $('#version').text(version);
     $('#maze-size').text(mazeSize[0] + ' x ' + mazeSize[1]);
