@@ -136,20 +136,6 @@ class Game {
                 this.player.cameraDir.phi = initialCameraDirPhi + radPerPx * (touch.clientX - initialCursorPosX);
                 this.player.cameraDir.theta = initialCameraDirTheta - radPerPx * (touch.clientY - initialCursorPosY);
             }
-            if (isMoving) {
-                const touch = e.originalEvent.touches[0];
-                const $joystick = $('#joystick');
-                
-                const maxRange = 100;
-
-                let joystickPos = new Vector([touch.clientX - initialJoystickPosX, touch.clientY - initialJoystickPosY]);
-                joystickPos = joystickPos.divideBy(Math.max(joystickPos.length() / maxRange, 1));
-
-                $joystick.css({ transform: `translate(${joystickPos.data[0]}px,${joystickPos.data[1]}px)` });
-
-                joystickPos = joystickPos.divideBy(maxRange).data;
-                this.player.movingDir = [-joystickPos[1], joystickPos[0]];
-            }
         };
         $(document).on("touchmove", onTouchmove);
 
@@ -221,6 +207,24 @@ class Game {
             initialJoystickPosY = touch.clientY;
         };
         $("#joystick-container").on("touchstart", onMovestart);
+
+        const onJoystickmove = (e) => {
+            if (isMoving) {
+                const touch = e.originalEvent.touches[0];
+                const $joystick = $('#joystick');
+                
+                const maxRange = 100;
+
+                let joystickPos = new Vector([touch.clientX - initialJoystickPosX, touch.clientY - initialJoystickPosY]);
+                joystickPos = joystickPos.divideBy(Math.max(joystickPos.length() / maxRange, 1));
+
+                $joystick.css({ transform: `translate(${joystickPos.data[0]}px,${joystickPos.data[1]}px)` });
+
+                joystickPos = joystickPos.divideBy(maxRange).data;
+                this.player.movingDir = [-joystickPos[1], joystickPos[0]];
+            }
+        };
+        $(document).on("touchmove", onJoystickmove);
         
         const onTouchend = (e) => {
             isDragging = false;
