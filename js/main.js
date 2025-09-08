@@ -49,9 +49,12 @@ $(function () {
     // $('#maze-size').text(MAZE_SIZE[0] + ' x ' + MAZE_SIZE[1]);
     $('#time').text('00:00:00');
 
-    $(document).on('gesturestart gesturechange gestureend', function(e) {
-        e.preventDefault();
-    });
+    // 拡大縮小を禁止
+    document.addEventListener('touchmove', function (event) {
+        if (event.scale !== 1) {
+            event.preventDefault();
+        }
+    }, { passive: false });
 
     // スタート
     game = new Game(MAZE_SIZE, FPS, sensitivity, VELOCITY);
