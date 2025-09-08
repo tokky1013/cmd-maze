@@ -296,7 +296,21 @@ class Display {
             width: 0,
             height: 0
         };
+        this.animationId;
         this.resize();
+    }
+
+    start(field, player) {
+        const animate = () => {
+            this.showView(field, player.cameraPos, player.cameraDir);
+            this.animationId = requestAnimationFrame(animate);
+        };
+
+        this.animationId = requestAnimationFrame(animate);
+    }
+
+    stop() {
+        cancelAnimationFrame(this.animationId);
     }
 
     showView(layers, cameraPos, cameraDir) {

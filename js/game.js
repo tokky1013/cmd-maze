@@ -12,11 +12,6 @@ class Game {
         this.cameraHeight = cameraHeight;
 
         this.sensitivity = sensitivity;
-        this.velocity = velocity;
-
-        this.isStarted = false;
-        this.moving = false;
-        this.movingDir = [0, 0];
 
         this.player = new Player(
             [0, 0, 1 + ((this.pathWidth + this.wallThickness) * (this.mazeSize[1] + 2) / 2) / Math.tan(this.display.verticalViewingAngle / 2)],
@@ -24,125 +19,183 @@ class Game {
                 theta: Math.PI,
                 phi: Math.PI / 2
             },
-            0.3
+            0.3,
+            velocity
         );
     }
 
     start() {
-        setInterval(function () {
-            game.display.showView(game.field, game.player.cameraPos, game.player.cameraDir);
-            if (game.isStarted) {
-                if(game.moving) {
-                    const TRot = new Tensor([
-                        [Math.cos(game.player.cameraDir.phi), Math.sin(game.player.cameraDir.phi)],
-                        [-Math.sin(game.player.cameraDir.phi), Math.cos(game.player.cameraDir.phi)]
-                    ]);
-                    const dCameraPos = TRot.dot(game.movingDir).multiplyBy(game.velocity * game.ds);
-                    dCameraPos.data.push(0);
-                    game.player.cameraPos = game.player.cameraPos.plus(dCameraPos);
-                }
-            }
-        }, this.ds * 1000);
         this.field = this.generateMaze();
+        this.display.showView(this.field, this.player.cameraPos, this.player.cameraDir);
 
-        this.viewpointTransitionTime = 2;
-        this.dCameraPos = this.player.cameraPos.minus([0, ((this.pathWidth + this.wallThickness) * this.mazeSize[1] + this.pathWidth) / 2, this.cameraHeight]).multiplyBy(-1 / this.viewpointTransitionTime);
-        this.dTheta = (Math.PI / 2 - this.player.cameraDir.theta) / this.viewpointTransitionTime;
-        this.dPhi = (Math.PI / 2 - this.player.cameraDir.phi) / this.viewpointTransitionTime;
+        const viewpointTransitionTime = 2;
+        const dCameraPos = this.player.cameraPos.minus([0, ((this.pathWidth + this.wallThickness) * this.mazeSize[1] + this.pathWidth) / 2, this.cameraHeight]).multiplyBy(-1 / viewpointTransitionTime);
+        const dTheta = (Math.PI / 2 - this.player.cameraDir.theta) / viewpointTransitionTime;
+        const dPhi = (Math.PI / 2 - this.player.cameraDir.phi) / viewpointTransitionTime;
 
-        setTimeout(function () {
-            game.timeAnimationStart = new Date().getTime();
-            game.initialCameraPos = game.player.cameraPos;
-            game.initialCameraDirTheta = game.player.cameraDir.theta;
-            game.initialCameraDirPhi = game.player.cameraDir.phi;
+        const prepare =  () => {
+            // 毎フレームの処理を開始
+            this.player.start();
+            this.display.start(this.field, this.player);
 
-            game.timer = setInterval(function () {
-                const timeDelta = (new Date().getTime() - game.timeAnimationStart) / 1000;
-                game.player.cameraPos = game.initialCameraPos.plus(game.dCameraPos.multiplyBy(timeDelta));
-                game.player.cameraDir.theta = game.initialCameraDirTheta + game.dTheta * timeDelta;
-                game.player.cameraDir.phi = game.initialCameraDirPhi + game.dPhi * timeDelta;
-            }, game.ds * 1000);
+            // 最初の上から降りてくるアニメーションを実行
+            const initialCameraPos = this.player.cameraPos;
+            const initialCameraDirTheta = this.player.cameraDir.theta;
+            const initialCameraDirPhi = this.player.cameraDir.phi;
 
-            setTimeout(function () {
-                clearInterval(game.timer);
-                game.player.cameraPos = new Vector([0, ((game.pathWidth + game.wallThickness) * game.mazeSize[1] + game.pathWidth) / 2, game.cameraHeight]);
-                game.player.cameraDir.theta = Math.PI / 2;
-                game.player.cameraDir.phi = Math.PI / 2;
+            let animationId;
+            let initialTime;
+            const animate = (now) => {
+                if(initialTime) {
+                    const timeDelta = (now - initialTime) / 1000;
+                    this.player.cameraPos = initialCameraPos.plus(dCameraPos.multiplyBy(timeDelta));
+                    this.player.cameraDir.theta = initialCameraDirTheta + dTheta * timeDelta;
+                    this.player.cameraDir.phi = initialCameraDirPhi + dPhi * timeDelta;
+                } else {
+                    initialTime = now;
+                }
+                if((now - initialTime) >= viewpointTransitionTime * 1000) {
+                    // アニメーションが終わったらスタート
+                    this.player.cameraPos = new Vector([0, ((this.pathWidth + this.wallThickness) * this.mazeSize[1] + this.pathWidth) / 2, this.cameraHeight]);
+                    this.player.cameraDir.theta = Math.PI / 2;
+                    this.player.cameraDir.phi = Math.PI / 2;
 
-                // 各種操作のイベントを設定
-                // ----視点移動----
-                game.isDragging = false;
+                    this.setEvents();
+                } else {
+                    animationId = requestAnimationFrame(animate);
+                }
+            };
+            animationId = requestAnimationFrame(animate);
+        }
+        setTimeout(prepare, 1000);
+    }
 
-                // 押した瞬間
-                $("#cmd-window").on("mousedown", function (e) {
-                    game.isDragging = true;
-                    game.initialCursorPositionX = e.clientX;
-                    game.initialCursorPositionY = e.clientY;
-                    game.initialCameraDirTheta = game.player.cameraDir.theta;
-                    game.initialCameraDirPhi = game.player.cameraDir.phi;
-                });
+    stop() {
+        this.clearEvents();
+        this.display.stop();
+        this.player.stop();
+    }
 
-                $("#cmd-window").on("touchstart", function (e) {
-                    game.isDragging = true;
-                    const touch = e.originalEvent.touches[0];
-                    game.initialCursorPositionX = touch.clientX;
-                    game.initialCursorPositionY = touch.clientY;
-                    game.initialCameraDirTheta = game.player.cameraDir.theta;
-                    game.initialCameraDirPhi = game.player.cameraDir.phi;
-                });
+    setEvents() {
+        // ディスプレイのリサイズ
+        const resize = () => this.display.resize();
+        $(window).on("resize", resize);
+        $(window).on("orientationchange", function () {
+            setTimeout(resize, 300);
+        });
 
-                // 移動中
-                $(document).on("mousemove", function (e) {
-                    if (!game.isDragging) return;
-                    const boxWidth = $('#cmd-window')[0].getBoundingClientRect().width;
 
-                    const radPerPx = game.sensitivity * Math.PI / boxWidth
+        // 各種操作のイベントを設定
+        // ----視点移動----
+        let isDragging = false;
+        
+        let initialCursorPositionX;
+        let initialCursorPositionY;
+        let initialCameraDirTheta;
+        let initialCameraDirPhi;
 
-                    game.player.cameraDir.phi = game.initialCameraDirPhi + radPerPx * (e.clientX - game.initialCursorPositionX);
-                    game.player.cameraDir.theta = game.initialCameraDirTheta - radPerPx * (e.clientY - game.initialCursorPositionY);
-                });
-                $(document).on("touchmove", function (e) {
-                    if (!game.isDragging) return;
-                    const boxWidth = $('#cmd-window')[0].getBoundingClientRect().width;
+        // 押した瞬間
+        const onMousedown = (e) => {
+            isDragging = true;
+            initialCursorPositionX = e.clientX;
+            initialCursorPositionY = e.clientY;
+            initialCameraDirTheta = this.player.cameraDir.theta;
+            initialCameraDirPhi = this.player.cameraDir.phi;
+        };
+        $("#cmd-window").on("mousedown", onMousedown);
 
-                    const radPerPx = game.sensitivity * Math.PI / boxWidth
+        const onTouchstart = (e) => {
+            isDragging = true;
+            const touch = e.originalEvent.touches[0];
+            initialCursorPositionX = touch.clientX;
+            initialCursorPositionY = touch.clientY;
+            initialCameraDirTheta = this.player.cameraDir.theta;
+            initialCameraDirPhi = this.player.cameraDir.phi;
+        };
+        $("#cmd-window").on("touchstart", onTouchstart);
 
-                    const touch = e.originalEvent.touches[0];
-                    game.player.cameraDir.phi = game.initialCameraDirPhi + radPerPx * (touch.clientX - game.initialCursorPositionX);
-                    game.player.cameraDir.theta = game.initialCameraDirTheta - radPerPx * (touch.clientY - game.initialCursorPositionY);
-                });
+        // 移動中
+        const onMousemove = (e) => {
+            if (!isDragging) return;
+            const boxWidth = $('#cmd-window')[0].getBoundingClientRect().width;
 
-                // 離した瞬間
-                $(document).on("mouseup touchend", function (e) {
-                    game.isDragging = false;
-                });
+            const radPerPx = this.sensitivity * Math.PI / boxWidth
 
-                // ----移動----
-                $(document).on("keydown", function (e) {
-                    if (e.code === "KeyW") {
-                        game.moving = true;
-                        game.movingDir = [1, 0];
-                    } else if (e.code === "KeyA") {
-                        game.moving = true;
-                        game.movingDir = [0, -1];
-                    } else if (e.code === "KeyS") {
-                        game.moving = true;
-                        game.movingDir = [-1, 0];
-                    } else if (e.code === "KeyD") {
-                        game.moving = true;
-                        game.movingDir = [0, 1];
-                    }
-                });
+            this.player.cameraDir.phi = initialCameraDirPhi + radPerPx * (e.clientX - initialCursorPositionX);
+            this.player.cameraDir.theta = initialCameraDirTheta - radPerPx * (e.clientY - initialCursorPositionY);
+        };
+        $(document).on("mousemove", onMousemove);
 
-                $(document).on("keyup", function (e) {
-                    if (e.code === "KeyW" || e.code === "KeyA"|| e.code === "KeyS"|| e.code === "KeyD") {
-                        game.moving = false;
-                    }
-                });
+        const onTouchmove = (e) => {
+            if (!isDragging) return;
+            const boxWidth = $('#cmd-window')[0].getBoundingClientRect().width;
 
-                game.isStarted = true;
-            }, game.viewpointTransitionTime * 1000);
-        }, 1000);
+            const radPerPx = this.sensitivity * Math.PI / boxWidth
+
+            const touch = e.originalEvent.touches[0];
+            this.player.cameraDir.phi = initialCameraDirPhi + radPerPx * (touch.clientX - initialCursorPositionX);
+            this.player.cameraDir.theta = initialCameraDirTheta - radPerPx * (touch.clientY - initialCursorPositionY);
+        };
+        $(document).on("touchmove", onTouchmove);
+
+        // 離した瞬間
+        const onMouseup = (e) => isDragging = false;
+        $(document).on("mouseup touchend", onMouseup);
+
+        // ----移動----
+        let wIsPressed = false;
+        let aIsPressed = false;
+        let sIsPressed = false;
+        let dIsPressed = false;
+        const onKeydown = (e) => {
+            if (e.code === "KeyW") {
+                this.player.isMoving = true;
+                wIsPressed = true;
+            } else if (e.code === "KeyA") {
+                this.player.isMoving = true;
+                aIsPressed = true;
+            } else if (e.code === "KeyS") {
+                this.player.isMoving = true;
+                sIsPressed = true;
+            } else if (e.code === "KeyD") {
+                this.player.isMoving = true;
+                dIsPressed = true;
+            }
+
+            // 動く方向を計算
+            let movingDirX = (wIsPressed ? 1 : 0) + (sIsPressed ? -1 : 0);
+            let movingDirY = (dIsPressed ? 1 : 0) + (aIsPressed ? -1 : 0);
+            this.player.movingDir = [movingDirX, movingDirY];
+        };
+        $(document).on("keydown", onKeydown);
+
+        const onKeyup = (e) => {
+            if (e.code === "KeyW") {
+                wIsPressed = false;
+            } else if (e.code === "KeyA") {
+                aIsPressed = false;
+            } else if (e.code === "KeyS") {
+                sIsPressed = false;
+            } else if (e.code === "KeyD") {
+                dIsPressed = false;
+            }
+
+            if(!(wIsPressed || aIsPressed || sIsPressed || dIsPressed)) {
+                this.player.isMoving = false;
+            } else {
+                // 動く方向を計算
+                let movingDirX = (wIsPressed ? 1 : 0) + (sIsPressed ? -1 : 0);
+                let movingDirY = (dIsPressed ? 1 : 0) + (aIsPressed ? -1 : 0);
+                this.player.movingDir = [movingDirX, movingDirY];
+            }
+        };
+        $(document).on("keyup", onKeyup);
+    }
+
+    clearEvents() {
+        $(window).off();
+        $("#cmd-window").off();
+        $(document).off();
     }
 
     generateMaze() {
@@ -345,9 +398,9 @@ class Game {
 }
 
 // プレイヤー
-// 形は無限に長い円筒形
+// 形は無限に長い四角柱
 class Player {
-    constructor(cameraPos, cameraDir, width) {
+    constructor(cameraPos, cameraDir, width, velocity) {
         if (Array.isArray(cameraPos)) {
             cameraPos = new Vector(cameraPos);
         }
@@ -355,5 +408,38 @@ class Player {
         this.cameraPos = cameraPos;
         this.cameraDir = cameraDir;
         this.width = width;
+        this.velocity = velocity;
+
+        this.isMoving = false;
+        this.movingDir = [0, 0];
+        this.animationId;
+        this.last;
+    }
+
+    // 
+    start() {
+        const animate = (now) => {
+            if (this.isMoving) {
+                if (this.last) {
+                    const ds = (now - this.last) / 1000;
+
+                    const TRot = new Tensor([
+                        [Math.cos(this.cameraDir.phi), Math.sin(this.cameraDir.phi)],
+                        [-Math.sin(this.cameraDir.phi), Math.cos(this.cameraDir.phi)]
+                    ]);
+                    const dCameraPos = TRot.dot(this.movingDir).multiplyBy(this.velocity * ds);
+                    dCameraPos.data.push(0);
+                    this.cameraPos = this.cameraPos.plus(dCameraPos);
+                }
+            }
+            this.last = now;
+            this.animationId = requestAnimationFrame(animate);
+        };
+
+        this.animationId = requestAnimationFrame(animate);
+    }
+
+    stop() {
+        cancelAnimationFrame(this.animationId);
     }
 }
