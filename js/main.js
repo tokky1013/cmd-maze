@@ -57,7 +57,7 @@ $(function () {
     }, { passive: false });
     document.addEventListener('gesturestart', function (e) {
         e.preventDefault();
-    });
+    }, { passive: false });
 
     // スタート
     game = new Game(MAZE_SIZE, FPS, sensitivity, VELOCITY);
