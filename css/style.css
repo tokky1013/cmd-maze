@@ -108,6 +108,30 @@ header .window-img.close {
 #display {
     color: transparent;
 }
+/* joystick */
+#joystick-container {
+    position: fixed;
+    bottom: 50px;
+    right: 80px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background-color: #FFFFFF60;
+}
+
+#joystick {
+    position: relative;
+
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #FFFFFF60;
+}
 
 /* その他 */
 .flex-1 {

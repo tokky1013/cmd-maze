@@ -19,7 +19,7 @@ class Game {
                 theta: Math.PI,
                 phi: Math.PI / 2
             },
-            0.3,
+            0.25,
             velocity
         );
     }
@@ -33,9 +33,9 @@ class Game {
         const dTheta = (Math.PI / 2 - this.player.cameraDir.theta) / viewpointTransitionTime;
         const dPhi = (Math.PI / 2 - this.player.cameraDir.phi) / viewpointTransitionTime;
 
-        const prepare =  () => {
+        const prepare = () => {
             // 毎フレームの処理を開始
-            this.player.start();
+            this.player.start(this.field[0]);
             this.display.start(this.field, this.player);
 
             // 最初の上から降りてくるアニメーションを実行
@@ -46,7 +46,7 @@ class Game {
             let animationId;
             let initialTime;
             const animate = (now) => {
-                if(initialTime) {
+                if (initialTime) {
                     const timeDelta = (now - initialTime) / 1000;
                     this.player.cameraPos = initialCameraPos.plus(dCameraPos.multiplyBy(timeDelta));
                     this.player.cameraDir.theta = initialCameraDirTheta + dTheta * timeDelta;
@@ -54,7 +54,7 @@ class Game {
                 } else {
                     initialTime = now;
                 }
-                if((now - initialTime) >= viewpointTransitionTime * 1000) {
+                if ((now - initialTime) >= viewpointTransitionTime * 1000) {
                     // アニメーションが終わったらスタート
                     this.player.cameraPos = new Vector([0, ((this.pathWidth + this.wallThickness) * this.mazeSize[1] + this.pathWidth) / 2, this.cameraHeight]);
                     this.player.cameraDir.theta = Math.PI / 2;
@@ -88,17 +88,17 @@ class Game {
         // 各種操作のイベントを設定
         // ----視点移動----
         let isDragging = false;
-        
-        let initialCursorPositionX;
-        let initialCursorPositionY;
+
+        let initialCursorPosX;
+        let initialCursorPosY;
         let initialCameraDirTheta;
         let initialCameraDirPhi;
 
         // 押した瞬間
         const onMousedown = (e) => {
             isDragging = true;
-            initialCursorPositionX = e.clientX;
-            initialCursorPositionY = e.clientY;
+            initialCursorPosX = e.clientX;
+            initialCursorPosY = e.clientY;
             initialCameraDirTheta = this.player.cameraDir.theta;
             initialCameraDirPhi = this.player.cameraDir.phi;
         };
@@ -107,8 +107,8 @@ class Game {
         const onTouchstart = (e) => {
             isDragging = true;
             const touch = e.originalEvent.touches[0];
-            initialCursorPositionX = touch.clientX;
-            initialCursorPositionY = touch.clientY;
+            initialCursorPosX = touch.clientX;
+            initialCursorPosY = touch.clientY;
             initialCameraDirTheta = this.player.cameraDir.theta;
             initialCameraDirPhi = this.player.cameraDir.phi;
         };
@@ -121,28 +121,46 @@ class Game {
 
             const radPerPx = this.sensitivity * Math.PI / boxWidth
 
-            this.player.cameraDir.phi = initialCameraDirPhi + radPerPx * (e.clientX - initialCursorPositionX);
-            this.player.cameraDir.theta = initialCameraDirTheta - radPerPx * (e.clientY - initialCursorPositionY);
+            this.player.cameraDir.phi = initialCameraDirPhi + radPerPx * (e.clientX - initialCursorPosX);
+            this.player.cameraDir.theta = initialCameraDirTheta - radPerPx * (e.clientY - initialCursorPosY);
         };
         $(document).on("mousemove", onMousemove);
 
         const onTouchmove = (e) => {
-            if (!isDragging) return;
-            const boxWidth = $('#cmd-window')[0].getBoundingClientRect().width;
+            if (isDragging) {
+                const boxWidth = $('#cmd-window')[0].getBoundingClientRect().width;
 
-            const radPerPx = this.sensitivity * Math.PI / boxWidth
+                const radPerPx = this.sensitivity * Math.PI / boxWidth
 
-            const touch = e.originalEvent.touches[0];
-            this.player.cameraDir.phi = initialCameraDirPhi + radPerPx * (touch.clientX - initialCursorPositionX);
-            this.player.cameraDir.theta = initialCameraDirTheta - radPerPx * (touch.clientY - initialCursorPositionY);
+                const touch = e.originalEvent.touches[0];
+                this.player.cameraDir.phi = initialCameraDirPhi + radPerPx * (touch.clientX - initialCursorPosX);
+                this.player.cameraDir.theta = initialCameraDirTheta - radPerPx * (touch.clientY - initialCursorPosY);
+            }
+            if (isMoving) {
+                const touch = e.originalEvent.touches[0];
+                const $joystick = $('#joystick');
+                
+                const maxRange = 100;
+
+                let joystickPos = new Vector([touch.clientX - initialJoystickPosX, touch.clientY - initialJoystickPosY]);
+                joystickPos = joystickPos.divideBy(Math.max(joystickPos.length() / maxRange, 1));
+
+                $joystick.css({ transform: `translate(${joystickPos.data[0]}px,${joystickPos.data[1]}px)` });
+
+                joystickPos = joystickPos.divideBy(maxRange).data;
+                this.player.movingDir = [-joystickPos[1], joystickPos[0]];
+            }
         };
         $(document).on("touchmove", onTouchmove);
 
         // 離した瞬間
-        const onMouseup = (e) => isDragging = false;
-        $(document).on("mouseup touchend", onMouseup);
+        const onMouseup = (e) => {
+            isDragging = false;
+        };
+        $(document).on("mouseup", onMouseup);
 
         // ----移動----
+        // pc
         let wIsPressed = false;
         let aIsPressed = false;
         let sIsPressed = false;
@@ -180,7 +198,7 @@ class Game {
                 dIsPressed = false;
             }
 
-            if(!(wIsPressed || aIsPressed || sIsPressed || dIsPressed)) {
+            if (!(wIsPressed || aIsPressed || sIsPressed || dIsPressed)) {
                 this.player.isMoving = false;
             } else {
                 // 動く方向を計算
@@ -190,6 +208,29 @@ class Game {
             }
         };
         $(document).on("keyup", onKeyup);
+
+        // スマホ
+        let isMoving = false;
+        let initialJoystickPosX;
+        let initialJoystickPosY;
+        const onMovestart = (e) => {
+            isMoving = true;
+            this.player.isMoving = true;
+            const touch = e.originalEvent.touches[0];
+            initialJoystickPosX = touch.clientX;
+            initialJoystickPosY = touch.clientY;
+        };
+        $("#joystick-container").on("touchstart", onMovestart);
+        
+        const onTouchend = (e) => {
+            isDragging = false;
+            isMoving = false
+            this.player.isMoving = false;
+            const $joystick = $('#joystick');
+
+            $joystick.css({ transform: 'translate(0px, 0px)' });
+        };
+        $(document).on("touchend", onTouchend);
     }
 
     clearEvents() {
@@ -417,7 +458,7 @@ class Player {
     }
 
     // 
-    start() {
+    start(objects) {
         const animate = (now) => {
             if (this.isMoving) {
                 if (this.last) {
@@ -428,8 +469,121 @@ class Player {
                         [-Math.sin(this.cameraDir.phi), Math.cos(this.cameraDir.phi)]
                     ]);
                     const dCameraPos = TRot.dot(this.movingDir).multiplyBy(this.velocity * ds);
-                    dCameraPos.data.push(0);
-                    this.cameraPos = this.cameraPos.plus(dCameraPos);
+                    const dCameraPosX = dCameraPos.data[0];
+                    const dCameraPosY = dCameraPos.data[1];
+                    this.cameraPos.data[0] += dCameraPosX;
+                    this.cameraPos.data[1] += dCameraPosY;
+
+                    const cameraPosXBeforeCollision = this.cameraPos.data[0];
+                    const cameraPosYBeforeCollision = this.cameraPos.data[1];
+
+                    let playerMinX = this.cameraPos.data[0] - this.width / 2;
+                    let playerMinY = this.cameraPos.data[1] - this.width / 2;
+                    let playerMaxX = this.cameraPos.data[0] + this.width / 2;
+                    let playerMaxY = this.cameraPos.data[1] + this.width / 2;
+
+                    let isCrashedInXAxisDirection = false;
+                    let isCrashedInYAxisDirection = false;
+
+                    let firstCollidedObject = null;
+                    let firstCollidedDir = null;
+
+                    for (const object of objects) {
+                        // x軸方向の衝突判定
+                        if (dCameraPosX > 0) {
+                            if (playerMinX < object.min.data[0] && object.min.data[0] < playerMaxX) {
+                                if (playerMinY < object.max.data[1] && object.min.data[1] < playerMaxY) {
+                                    this.cameraPos.data[0] = object.min.data[0] - this.width / 2;
+                                    isCrashedInXAxisDirection = true;
+                                    playerMinX = this.cameraPos.data[0] - this.width / 2;
+                                    playerMaxX = this.cameraPos.data[0] + this.width / 2;
+                                    if (firstCollidedObject === null) {
+                                        firstCollidedObject = object;
+                                        firstCollidedDir = 'x';
+                                    }
+                                }
+                            }
+                        } else if (dCameraPosX < 0) {
+                            if (playerMinX < object.max.data[0] && object.max.data[0] < playerMaxX) {
+                                if (playerMinY < object.max.data[1] && object.min.data[1] < playerMaxY) {
+                                    this.cameraPos.data[0] = object.max.data[0] + this.width / 2;
+                                    isCrashedInXAxisDirection = true;
+                                    playerMinX = this.cameraPos.data[0] - this.width / 2;
+                                    playerMaxX = this.cameraPos.data[0] + this.width / 2;
+                                    if (firstCollidedObject === null) {
+                                        firstCollidedObject = object;
+                                        firstCollidedDir = 'x';
+                                    }
+                                }
+                            }
+                        }
+
+                        // y軸方向の衝突判定
+                        if (dCameraPosY > 0) {
+                            if (playerMinY < object.min.data[1] && object.min.data[1] < playerMaxY) {
+                                if (playerMinX < object.max.data[0] && object.min.data[0] < playerMaxX) {
+                                    this.cameraPos.data[1] = object.min.data[1] - this.width / 2;
+                                    isCrashedInYAxisDirection = true;
+                                    playerMinY = this.cameraPos.data[1] - this.width / 2;
+                                    playerMaxY = this.cameraPos.data[1] + this.width / 2;
+                                    if (firstCollidedObject === null) {
+                                        firstCollidedObject = object;
+                                        firstCollidedDir = 'y';
+                                    }
+                                }
+                            }
+                        } else if (dCameraPosY < 0) {
+                            if (playerMinY < object.max.data[1] && object.max.data[1] < playerMaxY) {
+                                if (playerMinX < object.max.data[0] && object.min.data[0] < playerMaxX) {
+                                    this.cameraPos.data[1] = object.max.data[1] + this.width / 2;
+                                    isCrashedInYAxisDirection = true;
+                                    playerMinY = this.cameraPos.data[1] - this.width / 2;
+                                    playerMaxY = this.cameraPos.data[1] + this.width / 2;
+                                    if (firstCollidedObject === null) {
+                                        firstCollidedObject = object;
+                                        firstCollidedDir = 'y';
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (isCrashedInXAxisDirection && isCrashedInYAxisDirection) {
+                        // 両方衝突した場合本当に衝突したか確かめる
+                        if (firstCollidedDir === 'x') {
+                            // x軸方向
+                            playerMinX = cameraPosXBeforeCollision - this.width / 2;
+                            playerMaxX = cameraPosXBeforeCollision + this.width / 2;
+
+                            if (dCameraPosX > 0) {
+                                if (playerMinX >= firstCollidedObject.min.data[0] || firstCollidedObject.min.data[0] >= playerMaxX ||
+                                    playerMinY >= firstCollidedObject.max.data[1] || firstCollidedObject.min.data[1] >= playerMaxY) {
+                                    this.cameraPos.data[0] = cameraPosXBeforeCollision;
+                                }
+                            } else if (dCameraPosX < 0) {
+                                if (playerMinX >= firstCollidedObject.max.data[0] || firstCollidedObject.max.data[0] >= playerMaxX ||
+                                    playerMinY >= firstCollidedObject.max.data[1] || firstCollidedObject.min.data[1] >= playerMaxY) {
+                                    this.cameraPos.data[0] = cameraPosXBeforeCollision;
+                                }
+                            }
+                        } else {
+                            // y軸方向
+                            playerMinY = cameraPosYBeforeCollision - this.width / 2;
+                            playerMaxY = cameraPosYBeforeCollision + this.width / 2;
+
+                            if (dCameraPosY > 0) {
+                                if (playerMinY >= firstCollidedObject.min.data[1] || firstCollidedObject.min.data[1] >= playerMaxY ||
+                                    playerMinX >= firstCollidedObject.max.data[0] || firstCollidedObject.min.data[0] >= playerMaxX) {
+                                    this.cameraPos.data[1] = cameraPosYBeforeCollision;
+                                }
+                            } else if (dCameraPosY < 0) {
+                                if (playerMinY >= firstCollidedObject.max.data[1] || firstCollidedObject.max.data[1] >= playerMaxY ||
+                                    playerMinX >= firstCollidedObject.max.data[0] || firstCollidedObject.min.data[0] >= playerMaxX) {
+                                    this.cameraPos.data[1] = cameraPosYBeforeCollision;
+                                }
+                            }
+                        }
+                    }
                 }
             }
             this.last = now;
