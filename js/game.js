@@ -138,7 +138,7 @@ class Game {
             }
             e.stopPropagation();
         };
-        $("#cmd-window").on("touchmove", onTouchmove);
+        $(document).on("touchmove", onTouchmove);
 
         // 離した瞬間
         const onMouseup = (e) => {
