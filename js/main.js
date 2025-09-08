@@ -49,6 +49,10 @@ $(function () {
     // $('#maze-size').text(MAZE_SIZE[0] + ' x ' + MAZE_SIZE[1]);
     $('#time').text('00:00:00');
 
+    $(document).on('gesturestart gesturechange gestureend', function(e) {
+        e.preventDefault();
+    });
+
     // スタート
     game = new Game(MAZE_SIZE, FPS, sensitivity, VELOCITY);
     game.start();
