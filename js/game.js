@@ -204,16 +204,16 @@ class Game {
             e.stopPropagation();
             isMoving = true;
             this.player.isMoving = true;
-            const touch = e.originalEvent.touches[0];
+            const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
             initialJoystickPosX = touch.clientX;
             initialJoystickPosY = touch.clientY;
         };
-        $("#joystick").on("touchstart", onMovestart);
+        $("#joystick-container").on("touchstart", onMovestart);
 
         const onJoystickmove = (e) => {
             e.stopPropagation();
             if (isMoving) {
-                const touch = e.originalEvent.touches[0];
+                const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
                 const $joystick = $('#joystick');
                 
                 const maxRange = 100;
@@ -227,7 +227,7 @@ class Game {
                 this.player.movingDir = [-joystickPos[1], joystickPos[0]];
             }
         };
-        $('#joystick').on("touchmove", onJoystickmove);
+        $('#joystick-container').on("touchmove", onJoystickmove);
         
         const onTouchend = (e) => {
             e.stopPropagation();
@@ -238,7 +238,7 @@ class Game {
 
             $joystick.css({ transform: 'translate(0px, 0px)' });
         };
-        $('#joystick').on("touchend", onTouchend);
+        $('#joystick-container').on("touchend", onTouchend);
     }
 
     clearEvents() {
