@@ -137,7 +137,7 @@ class Game {
                 this.player.cameraDir.theta = initialCameraDirTheta - radPerPx * (touch.clientY - initialCursorPosY);
             }
         };
-        $(document).on("touchmove", onTouchmove);
+        $("#cmd-window").on("touchmove", onTouchmove);
 
         // 離した瞬間
         const onMouseup = (e) => {
@@ -224,7 +224,7 @@ class Game {
                 this.player.movingDir = [-joystickPos[1], joystickPos[0]];
             }
         };
-        $(document).on("touchmove", onJoystickmove);
+        $('#joystick').on("touchmove", onJoystickmove);
         
         const onTouchend = (e) => {
             isDragging = false;
@@ -234,7 +234,7 @@ class Game {
 
             $joystick.css({ transform: 'translate(0px, 0px)' });
         };
-        $(document).on("touchend", onTouchend);
+        $('#joystick').on("touchend", onTouchend);
     }
 
     clearEvents() {
