@@ -312,9 +312,9 @@ class Game {
         function generate(cx, cy, mazeSize) {
             visited[cy][cx] = true;
 
-            dirs = shuffleArray(dirs);
-            for (let i = 0; i < dirs.length; i++) {
-                const dir = dirs[i];
+            const newDirs = shuffleArray(dirs);
+            for (let i = 0; i < newDirs.length; i++) {
+                const dir = newDirs[i];
                 let nx = cx + dir[0];
                 let ny = cy + dir[1];
                 if (0 <= nx && nx < mazeSize[0] && 0 <= ny && ny < mazeSize[1] && !visited[ny][nx]) {
