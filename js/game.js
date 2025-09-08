@@ -201,15 +201,17 @@ class Game {
         let initialJoystickPosX;
         let initialJoystickPosY;
         const onMovestart = (e) => {
+            e.stopPropagation();
             isMoving = true;
             this.player.isMoving = true;
             const touch = e.originalEvent.touches[0];
             initialJoystickPosX = touch.clientX;
             initialJoystickPosY = touch.clientY;
         };
-        $("#joystick-container").on("touchstart", onMovestart);
+        $("#joystick").on("touchstart", onMovestart);
 
         const onJoystickmove = (e) => {
+            e.stopPropagation();
             if (isMoving) {
                 const touch = e.originalEvent.touches[0];
                 const $joystick = $('#joystick');
@@ -224,11 +226,11 @@ class Game {
                 joystickPos = joystickPos.divideBy(maxRange).data;
                 this.player.movingDir = [-joystickPos[1], joystickPos[0]];
             }
-            e.stopPropagation();
         };
         $('#joystick').on("touchmove", onJoystickmove);
         
         const onTouchend = (e) => {
+            e.stopPropagation();
             isDragging = false;
             isMoving = false
             this.player.isMoving = false;
