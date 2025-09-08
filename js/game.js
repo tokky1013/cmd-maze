@@ -136,6 +136,7 @@ class Game {
                 this.player.cameraDir.phi = initialCameraDirPhi + radPerPx * (touch.clientX - initialCursorPosX);
                 this.player.cameraDir.theta = initialCameraDirTheta - radPerPx * (touch.clientY - initialCursorPosY);
             }
+            e.stopPropagation();
         };
         $("#cmd-window").on("touchmove", onTouchmove);
 
@@ -223,6 +224,7 @@ class Game {
                 joystickPos = joystickPos.divideBy(maxRange).data;
                 this.player.movingDir = [-joystickPos[1], joystickPos[0]];
             }
+            e.stopPropagation();
         };
         $('#joystick').on("touchmove", onJoystickmove);
         
