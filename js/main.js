@@ -1,5 +1,5 @@
 const VERSION = '1.0.0';
-const MAZE_SIZE = [9, 11];
+const MAZE_SIZE = [9, 10];
 const FPS = 30;
 
 const SMARTPHONE_SCALE = 0.7;
@@ -33,6 +33,7 @@ $(function () {
         verticalViewingAngle = SMARTPHONE_VERTICAL_VIEW_ANGLE;
         sensitivity = SMARTPHONE_SENSITIVITY;
         isSmartPhone = true;
+        $('#instruction-mes').css({display: 'none'});
     } else if (ua.match(/iPad|Android/)) {
         scale = PC_SCALE;
         verticalViewingAngle = PC_VERTICAL_VIEW_ANGLE;
