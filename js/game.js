@@ -90,6 +90,8 @@ class Game {
 
 
         // 各種操作のイベントを設定
+        let joystickTouchId = null;
+        let cameraTouchId = null;
         // ----視点移動----
         let isDragging = false;
 
@@ -108,12 +110,14 @@ class Game {
         });
 
         $("#cmd-window").on("touchstart", (e) => {
-            isDragging = true;
-            const touch = e.originalEvent.touches[0];
-            initialCursorPosX = touch.clientX;
-            initialCursorPosY = touch.clientY;
-            initialCameraDirTheta = this.player.cameraDir.theta;
-            initialCameraDirPhi = this.player.cameraDir.phi;
+            let touch = e.originalEvent.changedTouches[0];
+            if (joystickTouchId === null) {
+                joystickTouchId = touch.identifier;
+                initialCursorPosX = touch.clientX;
+                initialCursorPosY = touch.clientY;
+                initialCameraDirTheta = this.player.cameraDir.theta;
+                initialCameraDirPhi = this.player.cameraDir.phi;
+            }
         });
 
         // 移動中
@@ -129,22 +133,31 @@ class Game {
         });
 
         $(document).on("touchmove", (e) => {
-            if (isDragging) {
-                const boxWidth = $('#cmd-window')[0].getBoundingClientRect().width;
+            for (let touch of e.originalEvent.touches) {
+                if (touch.identifier === cameraTouchId) {
+                    const boxWidth = $('#cmd-window')[0].getBoundingClientRect().width;
 
-                const radPerPx = this.sensitivity * Math.PI / boxWidth
+                    const radPerPx = this.sensitivity * Math.PI / boxWidth
 
-                const touch = e.originalEvent.touches[0];
-                this.player.cameraDir.phi = initialCameraDirPhi + radPerPx * (touch.clientX - initialCursorPosX);
-                this.player.cameraDir.theta = initialCameraDirTheta - radPerPx * (touch.clientY - initialCursorPosY);
-                this.player.cameraDir.theta = Math.min(Math.max(0, this.player.cameraDir.theta), Math.PI);
+                    this.player.cameraDir.phi = initialCameraDirPhi + radPerPx * (touch.clientX - initialCursorPosX);
+                    this.player.cameraDir.theta = initialCameraDirTheta - radPerPx * (touch.clientY - initialCursorPosY);
+                    this.player.cameraDir.theta = Math.min(Math.max(0, this.player.cameraDir.theta), Math.PI);
+                }
             }
-            e.stopPropagation();
         });
 
         // 離した瞬間
         $(document).on("mouseup", (e) => {
             isDragging = false;
+        });
+
+
+        $(document).on("touchend", (e) => {
+            for (let t of e.originalEvent.changedTouches) {
+                if (t.identifier === cameraTouchId) {
+                    cameraTouchId = null;
+                }
+            }
         });
 
         // ----移動----
@@ -201,44 +214,46 @@ class Game {
         });
 
         // スマホ
-        let isMoving = false;
         let initialJoystickPosX;
         let initialJoystickPosY;
         $("#joystick-container").on("touchstart", (e) => {
-            e.stopPropagation();
-            isMoving = true;
+            let touch = e.originalEvent.changedTouches[0];
+            if (joystickTouchId === null) {
+                joystickTouchId = touch.identifier;
+            }
             this.player.isMoving = true;
-            const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
             initialJoystickPosX = touch.clientX;
             initialJoystickPosY = touch.clientY;
         });
 
         $('#joystick-container').on("touchmove", (e) => {
-            e.stopPropagation();
-            if (isMoving) {
-                const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
-                const $joystick = $('#joystick');
+            for (let touch of e.originalEvent.touches) {
+                if (touch.identifier === joystickTouchId) {
+                    const $joystick = $('#joystick');
 
-                const maxRange = 100;
+                    const maxRange = 100;
 
-                let joystickPos = new Vector([touch.clientX - initialJoystickPosX, touch.clientY - initialJoystickPosY]);
-                joystickPos = joystickPos.divideBy(Math.max(joystickPos.length() / maxRange, 1));
+                    let joystickPos = new Vector([touch.clientX - initialJoystickPosX, touch.clientY - initialJoystickPosY]);
+                    joystickPos = joystickPos.divideBy(Math.max(joystickPos.length() / maxRange, 1));
 
-                $joystick.css({ transform: `translate(${joystickPos.data[0]}px,${joystickPos.data[1]}px)` });
+                    $joystick.css({ transform: `translate(${joystickPos.data[0]}px,${joystickPos.data[1]}px)` });
 
-                joystickPos = joystickPos.divideBy(maxRange).data;
-                this.player.movingDir = [-joystickPos[1], joystickPos[0]];
+                    joystickPos = joystickPos.divideBy(maxRange).data;
+                    this.player.movingDir = [-joystickPos[1], joystickPos[0]];
+                }
             }
         });
 
         $('#joystick-container').on("touchend", (e) => {
-            e.stopPropagation();
-            isDragging = false;
-            isMoving = false
-            this.player.isMoving = false;
-            const $joystick = $('#joystick');
+            for (let touch of e.originalEvent.changedTouches) {
+                if (touch.identifier === joystickTouchId) {
+                    joystickTouchId = null;
+                    this.player.isMoving = false;
+                    const $joystick = $('#joystick');
 
-            $joystick.css({ transform: 'translate(0px, 0px)' });
+                    $joystick.css({ transform: 'translate(0px, 0px)' });
+                }
+            }
         });
     }
 
