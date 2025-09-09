@@ -110,13 +110,15 @@ class Game {
         });
 
         $("#cmd-window").on("touchstart", (e) => {
-            let touch = e.originalEvent.changedTouches[0];
-            if (joystickTouchId === null) {
-                joystickTouchId = touch.identifier;
-                initialCursorPosX = touch.clientX;
-                initialCursorPosY = touch.clientY;
-                initialCameraDirTheta = this.player.cameraDir.theta;
-                initialCameraDirPhi = this.player.cameraDir.phi;
+            // まだカメラ用の指がなければ割り当てる
+            for (let t of e.originalEvent.changedTouches) {
+                if (t.identifier !== joystickTouchId && cameraTouchId === null) {
+                    cameraTouchId = t.identifier;
+                    initialCursorPosX = touch.clientX;
+                    initialCursorPosY = touch.clientY;
+                    initialCameraDirTheta = this.player.cameraDir.theta;
+                    initialCameraDirPhi = this.player.cameraDir.phi;
+                }
             }
         });
 
