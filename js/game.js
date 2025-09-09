@@ -17,7 +17,7 @@ class Game {
                 theta: Math.PI,
                 phi: Math.PI / 2
             },
-            0.25,
+            0.2,
             velocity
         );
     }
@@ -233,7 +233,7 @@ class Game {
                 if (touch.identifier === joystickTouchId) {
                     const $joystick = $('#joystick');
 
-                    const maxRange = 100;
+                    const maxRange = 70;
 
                     let joystickPos = new Vector([touch.clientX - initialJoystickPosX, touch.clientY - initialJoystickPosY]);
                     joystickPos = joystickPos.divideBy(Math.max(joystickPos.length() / maxRange, 1));
