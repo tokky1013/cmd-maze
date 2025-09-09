@@ -113,7 +113,7 @@ class Game {
             // まだカメラ用の指がなければ割り当てる
             for (let touch of e.originalEvent.changedTouches) {
                 if (touch.identifier !== joystickTouchId && cameraTouchId === null) {
-                    cameraTouchId = t.identifier;
+                    cameraTouchId = touch.identifier;
                     initialCursorPosX = touch.clientX;
                     initialCursorPosY = touch.clientY;
                     initialCameraDirTheta = this.player.cameraDir.theta;
