@@ -111,8 +111,8 @@ class Game {
 
         $("#cmd-window").on("touchstart", (e) => {
             // まだカメラ用の指がなければ割り当てる
-            for (let t of e.originalEvent.changedTouches) {
-                if (t.identifier !== joystickTouchId && cameraTouchId === null) {
+            for (let touch of e.originalEvent.changedTouches) {
+                if (touch.identifier !== joystickTouchId && cameraTouchId === null) {
                     cameraTouchId = t.identifier;
                     initialCursorPosX = touch.clientX;
                     initialCursorPosY = touch.clientY;
