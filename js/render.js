@@ -289,8 +289,8 @@ class HolizontalTryangle {
 }
 // --------その他--------
 class Display {
-    constructor() {
-        this.verticalViewingAngle = Math.PI / 4;
+    constructor(verticalViewingAngle=Math.PI / 4) {
+        this.verticalViewingAngle = verticalViewingAngle;
         this.charSize = this.getCharSize($('#cmd-window'));
         this.displaySize = {
             width: 0,

@@ -1,13 +1,16 @@
 const VERSION = '1.0.0';
-const MAZE_SIZE = [7, 7];
+const MAZE_SIZE = [9, 11];
 const FPS = 30;
 
 const SMARTPHONE_SCALE = 0.7;
 const PC_SCALE = 1;
+const SMARTPHONE_VERTICAL_VIEW_ANGLE = Math.PI / 3
+const PC_VERTICAL_VIEW_ANGLE = Math.PI / 4
 const SMARTPHONE_SENSITIVITY = 0.8;
 const PC_SENSITIVITY = 1;
 const VELOCITY = 1.5;
 
+let game;
 let isSmartPhone;
 let scale;
 let sensitivity;
@@ -27,14 +30,17 @@ $(function () {
 
     if (ua.match(/iPhone|Android.+Mobile/)) {
         scale = SMARTPHONE_SCALE;
+        verticalViewingAngle = SMARTPHONE_VERTICAL_VIEW_ANGLE;
         sensitivity = SMARTPHONE_SENSITIVITY;
         isSmartPhone = true;
     } else if (ua.match(/iPad|Android/)) {
         scale = PC_SCALE;
+        verticalViewingAngle = PC_VERTICAL_VIEW_ANGLE;
         sensitivity = PC_SENSITIVITY;
         isSmartPhone = true;
     } else {
         scale = PC_SCALE;
+        verticalViewingAngle = PC_VERTICAL_VIEW_ANGLE;
         sensitivity = PC_SENSITIVITY;
         isSmartPhone = false;
     }
@@ -60,6 +66,6 @@ $(function () {
     }, { passive: false });
 
     // スタート
-    game = new Game(MAZE_SIZE, FPS, sensitivity, VELOCITY);
+    game = new Game(MAZE_SIZE, FPS, verticalViewingAngle, sensitivity, VELOCITY);
     game.start();
 });

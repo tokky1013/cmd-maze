@@ -1,8 +1,6 @@
-let game;
-
 class Game {
-    constructor(mazeSize, fps, sensitivity, velocity, pathWidth = 1, wallHeight = 1, wallThickness = 0.3, cameraHeight = 0.7) {
-        this.display = new Display();
+    constructor(mazeSize, fps, verticalViewingAngle, sensitivity, velocity, pathWidth = 1, wallHeight = 1, wallThickness = 0.3, cameraHeight = 0.7) {
+        this.display = new Display(verticalViewingAngle);
         this.field = [];
         this.mazeSize = mazeSize;
         this.ds = 1 / fps;
@@ -14,7 +12,7 @@ class Game {
         this.sensitivity = sensitivity;
 
         this.player = new Player(
-            [0, 0, 1 + ((this.pathWidth + this.wallThickness) * (this.mazeSize[1] + 2) / 2) / Math.tan(this.display.verticalViewingAngle / 2)],
+            [0, 0, 0],
             {
                 theta: Math.PI,
                 phi: Math.PI / 2
@@ -25,6 +23,12 @@ class Game {
     }
 
     start() {
+        const mazeWidth = (this.pathWidth + this.wallThickness) * this.mazeSize[0] + this.wallThickness;
+        const mazeHeight = (this.pathWidth + this.wallThickness) * (this.mazeSize[1] + 2) + this.wallThickness;
+        const cameraHeight1 = mazeWidth / 2 / Math.tan(this.display.verticalViewingAngle * this.display.displaySize.width * this.display.charSize.width / this.display.displaySize.height / this.display.charSize.height / 2);
+        const cameraHeight2 = mazeHeight / 2 / Math.tan(this.display.verticalViewingAngle / 2);
+
+        this.player.cameraPos = new Vector([0, 0, Math.max(cameraHeight1, cameraHeight2)]);
         this.field = this.generateMaze();
         this.display.showView(this.field, this.player.cameraPos, this.player.cameraDir);
 
@@ -95,27 +99,25 @@ class Game {
         let initialCameraDirPhi;
 
         // 押した瞬間
-        const onMousedown = (e) => {
+        $("#cmd-window").on("mousedown", (e) => {
             isDragging = true;
             initialCursorPosX = e.clientX;
             initialCursorPosY = e.clientY;
             initialCameraDirTheta = this.player.cameraDir.theta;
             initialCameraDirPhi = this.player.cameraDir.phi;
-        };
-        $("#cmd-window").on("mousedown", onMousedown);
+        });
 
-        const onTouchstart = (e) => {
+        $("#cmd-window").on("touchstart", (e) => {
             isDragging = true;
             const touch = e.originalEvent.touches[0];
             initialCursorPosX = touch.clientX;
             initialCursorPosY = touch.clientY;
             initialCameraDirTheta = this.player.cameraDir.theta;
             initialCameraDirPhi = this.player.cameraDir.phi;
-        };
-        $("#cmd-window").on("touchstart", onTouchstart);
+        });
 
         // 移動中
-        const onMousemove = (e) => {
+        $(document).on("mousemove", (e) => {
             if (!isDragging) return;
             const boxWidth = $('#cmd-window')[0].getBoundingClientRect().width;
 
@@ -123,10 +125,10 @@ class Game {
 
             this.player.cameraDir.phi = initialCameraDirPhi + radPerPx * (e.clientX - initialCursorPosX);
             this.player.cameraDir.theta = initialCameraDirTheta - radPerPx * (e.clientY - initialCursorPosY);
-        };
-        $(document).on("mousemove", onMousemove);
+            this.player.cameraDir.theta = Math.min(Math.max(0, this.player.cameraDir.theta), Math.PI);
+        });
 
-        const onTouchmove = (e) => {
+        $(document).on("touchmove", (e) => {
             if (isDragging) {
                 const boxWidth = $('#cmd-window')[0].getBoundingClientRect().width;
 
@@ -135,16 +137,15 @@ class Game {
                 const touch = e.originalEvent.touches[0];
                 this.player.cameraDir.phi = initialCameraDirPhi + radPerPx * (touch.clientX - initialCursorPosX);
                 this.player.cameraDir.theta = initialCameraDirTheta - radPerPx * (touch.clientY - initialCursorPosY);
+                this.player.cameraDir.theta = Math.min(Math.max(0, this.player.cameraDir.theta), Math.PI);
             }
             e.stopPropagation();
-        };
-        $(document).on("touchmove", onTouchmove);
+        });
 
         // 離した瞬間
-        const onMouseup = (e) => {
+        $(document).on("mouseup", (e) => {
             isDragging = false;
-        };
-        $(document).on("mouseup", onMouseup);
+        });
 
         // ----移動----
         // pc
@@ -152,7 +153,7 @@ class Game {
         let aIsPressed = false;
         let sIsPressed = false;
         let dIsPressed = false;
-        const onKeydown = (e) => {
+        $(document).on("keydown", (e) => {
             if (e.code === "KeyW") {
                 this.player.isMoving = true;
                 wIsPressed = true;
@@ -170,11 +171,15 @@ class Game {
             // 動く方向を計算
             let movingDirX = (wIsPressed ? 1 : 0) + (sIsPressed ? -1 : 0);
             let movingDirY = (dIsPressed ? 1 : 0) + (aIsPressed ? -1 : 0);
+            const len = movingDirX ** 2 + movingDirY ** 2;
+            if (len !== 0) {
+                movingDirX /= len;
+                movingDirY /= len;
+            }
             this.player.movingDir = [movingDirX, movingDirY];
-        };
-        $(document).on("keydown", onKeydown);
+        });
 
-        const onKeyup = (e) => {
+        $(document).on("keyup", (e) => {
             if (e.code === "KeyW") {
                 wIsPressed = false;
             } else if (e.code === "KeyA") {
@@ -193,29 +198,27 @@ class Game {
                 let movingDirY = (dIsPressed ? 1 : 0) + (aIsPressed ? -1 : 0);
                 this.player.movingDir = [movingDirX, movingDirY];
             }
-        };
-        $(document).on("keyup", onKeyup);
+        });
 
         // スマホ
         let isMoving = false;
         let initialJoystickPosX;
         let initialJoystickPosY;
-        const onMovestart = (e) => {
+        $("#joystick-container").on("touchstart", (e) => {
             e.stopPropagation();
             isMoving = true;
             this.player.isMoving = true;
             const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
             initialJoystickPosX = touch.clientX;
             initialJoystickPosY = touch.clientY;
-        };
-        $("#joystick-container").on("touchstart", onMovestart);
+        });
 
-        const onJoystickmove = (e) => {
+        $('#joystick-container').on("touchmove", (e) => {
             e.stopPropagation();
             if (isMoving) {
                 const touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
                 const $joystick = $('#joystick');
-                
+
                 const maxRange = 100;
 
                 let joystickPos = new Vector([touch.clientX - initialJoystickPosX, touch.clientY - initialJoystickPosY]);
@@ -226,10 +229,9 @@ class Game {
                 joystickPos = joystickPos.divideBy(maxRange).data;
                 this.player.movingDir = [-joystickPos[1], joystickPos[0]];
             }
-        };
-        $('#joystick-container').on("touchmove", onJoystickmove);
-        
-        const onTouchend = (e) => {
+        });
+
+        $('#joystick-container').on("touchend", (e) => {
             e.stopPropagation();
             isDragging = false;
             isMoving = false
@@ -237,14 +239,14 @@ class Game {
             const $joystick = $('#joystick');
 
             $joystick.css({ transform: 'translate(0px, 0px)' });
-        };
-        $('#joystick-container').on("touchend", onTouchend);
+        });
     }
 
     clearEvents() {
         $(window).off();
         $("#cmd-window").off();
         $(document).off();
+        $("#joystick-container").off();
     }
 
     generateMaze() {
@@ -329,28 +331,56 @@ class Game {
         // holizontalWallsを描画
         for (let i = 0; i < holizontalWalls.length; i++) {
             const row = holizontalWalls[i];
+            let prev = false;
+            let min = null;
             for (let j = 0; j < row.length; j++) {
                 if (row[j]) {
+                    if (!prev) {
+                        min = [-mazeWidth / 2 + (this.pathWidth + this.wallThickness) * j, -mazeHeight / 2 + (this.pathWidth + this.wallThickness) * (i + 1), 0];
+                    }
+                } else if (prev) {
                     objects.push(new AABB(
-                        [-mazeWidth / 2 + (this.pathWidth + this.wallThickness) * j, -mazeHeight / 2 + (this.pathWidth + this.wallThickness) * (i + 1), 0],
-                        [-mazeWidth / 2 + (this.pathWidth + this.wallThickness) * (j + 1) + this.wallThickness, -mazeHeight / 2 + (this.pathWidth + this.wallThickness) * (i + 1) + this.wallThickness, this.wallHeight],
+                        min,
+                        [-mazeWidth / 2 + (this.pathWidth + this.wallThickness) * j + this.wallThickness, -mazeHeight / 2 + (this.pathWidth + this.wallThickness) * (i + 1) + this.wallThickness, this.wallHeight],
                         mainColor0
                     ));
                 }
+                prev = row[j];
+            }
+            if (prev) {
+                objects.push(new AABB(
+                    min,
+                    [mazeWidth / 2, -mazeHeight / 2 + (this.pathWidth + this.wallThickness) * (i + 1) + this.wallThickness, this.wallHeight],
+                    mainColor0
+                ));
             }
         }
 
         // verticalWallsを描画
-        for (let i = 0; i < verticalWalls.length; i++) {
-            const row = verticalWalls[i];
-            for (let j = 0; j < row.length; j++) {
-                if (row[j]) {
+        for (let i = 0; i < verticalWalls[0].length; i++) {
+            let prev = false;
+            let min = null;
+            for (let j = 0; j < verticalWalls.length; j++) {
+                const wall = verticalWalls[j][i];
+                if (wall) {
+                    if (!prev) {
+                        min = [-mazeWidth / 2 + (this.pathWidth + this.wallThickness) * (i + 1), -mazeHeight / 2 + (this.pathWidth + this.wallThickness) * j, 0];
+                    }
+                } else if (prev) {
                     objects.push(new AABB(
-                        [-mazeWidth / 2 + (this.pathWidth + this.wallThickness) * (j + 1), -mazeHeight / 2 + (this.pathWidth + this.wallThickness) * i, 0],
-                        [-mazeWidth / 2 + (this.pathWidth + this.wallThickness) * (j + 1) + this.wallThickness, -mazeHeight / 2 + (this.pathWidth + this.wallThickness) * (i + 1) + this.wallThickness, this.wallHeight],
+                        min,
+                        [-mazeWidth / 2 + (this.pathWidth + this.wallThickness) * (i + 1) + this.wallThickness, -mazeHeight / 2 + (this.pathWidth + this.wallThickness) * j + this.wallThickness, this.wallHeight],
                         mainColor0
                     ));
                 }
+                prev = wall;
+            }
+            if (prev) {
+                objects.push(new AABB(
+                    min,
+                    [-mazeWidth / 2 + (this.pathWidth + this.wallThickness) * (i + 1) + this.wallThickness, mazeHeight / 2, this.wallHeight],
+                    mainColor0
+                ));
             }
         }
 
