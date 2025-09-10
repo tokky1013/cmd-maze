@@ -13,9 +13,6 @@ class Vector {
         if (Array.isArray(other) && other.length === this.data.length) {
             let ans = [];
             for (let i = 0; i < this.data.length; i++) {
-                if (typeof other[i] !== 'number') {
-                    throw new Error(other + "をベクトルに足すことはできません。");
-                }
                 ans[i] = this.data[i] + other[i];
             }
             return new Vector(ans);
@@ -25,10 +22,8 @@ class Vector {
                 ans[i] = this.data[i] + other;
             }
             return new Vector(ans);
-        } else if (other instanceof Vector) {
-            return this.plus(other.data);
         } else {
-            throw new Error(other + "をベクトルに足すことはできません。");
+            return this.plus(other.data);
         }
     }
 
@@ -36,9 +31,6 @@ class Vector {
         if (Array.isArray(other) && other.length === this.data.length) {
             let ans = [];
             for (let i = 0; i < this.data.length; i++) {
-                if (typeof other[i] !== 'number') {
-                    throw new Error(other + "をベクトルから引くことはできません。");
-                }
                 ans[i] = this.data[i] - other[i];
             }
             return new Vector(ans);
@@ -48,10 +40,8 @@ class Vector {
                 ans[i] = this.data[i] - other;
             }
             return new Vector(ans);
-        } else if (other instanceof Vector) {
-            return this.minus(other.data);
         } else {
-            throw new Error(other + "をベクトルから引くことはできません。");
+            return this.minus(other.data);
         }
     }
 
@@ -59,9 +49,6 @@ class Vector {
         if (Array.isArray(other) && other.length === this.data.length) {
             let ans = [];
             for (let i = 0; i < this.data.length; i++) {
-                if (typeof other[i] !== 'number') {
-                    throw new Error(other + "をベクトルにかけることはできません。");
-                }
                 ans[i] = this.data[i] * other[i];
             }
             return new Vector(ans);
@@ -71,10 +58,8 @@ class Vector {
                 ans[i] = this.data[i] * other;
             }
             return new Vector(ans);
-        } else if (other instanceof Vector) {
-            return this.multiplyBy(other.data);
         } else {
-            throw new Error(other + "をベクトルにかけることはできません。");
+            return this.multiplyBy(other.data);
         }
     }
 
@@ -82,9 +67,6 @@ class Vector {
         if (Array.isArray(other) && other.length === this.data.length) {
             let ans = [];
             for (let i = 0; i < this.data.length; i++) {
-                if (typeof other[i] !== 'number') {
-                    throw new Error(other + "でベクトルを割ることはできません。");
-                }
                 ans[i] = this.data[i] / other[i];
             }
             return new Vector(ans);
@@ -94,10 +76,8 @@ class Vector {
                 ans[i] = this.data[i] / other;
             }
             return new Vector(ans);
-        } else if (other instanceof Vector) {
-            return this.divideBy(other.data);
         } else {
-            throw new Error(other + "でベクトルを割ることはできません。");
+            return this.divideBy(other.data);
         }
     }
 
@@ -113,16 +93,11 @@ class Vector {
         if (Array.isArray(other) && other.length === this.data.length) {
             let ans = 0;
             for (let i = 0; i < this.data.length; i++) {
-                if (typeof other[i] !== 'number') {
-                    throw new Error(this.data + 'と' + other + "の内積を計算することはできません。");
-                }
                 ans += this.data[i] * other[i];
             }
             return ans;
-        } else if (other instanceof Vector) {
-            return this.dot(other.data);
         } else {
-            throw new Error(this.data + 'と' + other + "の内積を計算することはできません。");
+            return this.dot(other.data);
         }
     }
 }
@@ -169,10 +144,8 @@ class Tensor {
                 return new Tensor(ans);
             }
 
-        } else if (other instanceof Vector || other instanceof Tensor) {
-            return this.dot(other.data);
         } else {
-            throw new Error(this.data + 'と' + other + "の積を計算することはできません。");
+            return this.dot(other.data);
         }
     }
 }
@@ -290,6 +263,8 @@ class HolizontalTryangle {
 // --------その他--------
 class Display {
     constructor(verticalViewingAngle=Math.PI / 4) {
+        $('#time').text('00:00:00.00');
+        $('#display').html('');
         this.verticalViewingAngle = verticalViewingAngle;
         this.charSize = this.getCharSize($('#cmd-window'));
         this.displaySize = {
@@ -297,12 +272,26 @@ class Display {
             height: 0
         };
         this.animationId;
+        this.isGameStarted = false;
+        this.startedAt = null;
         this.resize();
     }
 
     start(field, player) {
-        const animate = () => {
+        const animate = (now) => {
             this.showView(field, player.cameraPos, player.cameraDir);
+            if(this.isGameStarted) {
+                if(this.startedAt === null) {
+                    this.startedAt = now;
+                } else {
+                    const timeDelta = now - this.startedAt
+                    const hour = (Math.floor(timeDelta / 60 / 60 / 1000) + '').padStart(2, '0');
+                    const minutes = (Math.floor(timeDelta / 60 / 1000) % 60 + '').padStart(2, '0');
+                    const seconds = (Math.floor(timeDelta / 1000) % 60 + '').padStart(2, '0');
+                    const secondsFraction = (Math.floor(timeDelta / 10) % 100 + '').padStart(2, '0');
+                    $('#time').text(`${hour}:${minutes}:${seconds}.${secondsFraction}`);
+                }
+            }
             this.animationId = requestAnimationFrame(animate);
         };
 
@@ -311,6 +300,8 @@ class Display {
 
     stop() {
         cancelAnimationFrame(this.animationId);
+        this.isGameStarted = false;
+        this.startedAt = null;
     }
 
     showView(layers, cameraPos, cameraDir) {

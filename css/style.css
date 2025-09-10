@@ -135,6 +135,10 @@ header .window-img.close {
     background-color: #FFFFFF60;
 }
 
+#joystick-container:not(.smartphone.game-start) {
+    display: none;
+}
+
 /* その他 */
 .flex-1 {
     flex: 1;

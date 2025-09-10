@@ -8,13 +8,14 @@ const SMARTPHONE_VERTICAL_VIEW_ANGLE = Math.PI / 2.5
 const PC_VERTICAL_VIEW_ANGLE = Math.PI / 4
 const SMARTPHONE_SENSITIVITY = 0.7;
 const PC_SENSITIVITY = 1;
+const SMARTPHONE_WALL_HEIGHT = 0.8;
+const PC_WALL_HEIGHT = 0.9;
+const SMARTPHONE_CAMERA_HEIGHT = 0.56;
+const PC_CAMERA_HEIGHT = 0.63;
 const VELOCITY = 1.5;
 
 let game;
 let isSmartPhone;
-let scale;
-let sensitivity;
-let display;
 let mainColor0;
 let mainColor1;
 let mainColor2;
@@ -27,22 +28,35 @@ $(function () {
 
     // スマホかどうかの判定
     const ua = navigator.userAgent;
+    
+    let scale;
+    let verticalViewingAngle;
+    let sensitivity;
+    let wallHeight;
+    let cameraHeight;
 
     if (ua.match(/iPhone|Android.+Mobile/)) {
         scale = SMARTPHONE_SCALE;
         verticalViewingAngle = SMARTPHONE_VERTICAL_VIEW_ANGLE;
         sensitivity = SMARTPHONE_SENSITIVITY;
+        wallHeight = SMARTPHONE_WALL_HEIGHT;
+        cameraHeight = SMARTPHONE_CAMERA_HEIGHT;
         isSmartPhone = true;
         $('#instruction-mes').css({display: 'none'});
+        $('#joystick-container').addClass('smartphone');
     } else if (ua.match(/iPad|Android/)) {
         scale = PC_SCALE;
         verticalViewingAngle = PC_VERTICAL_VIEW_ANGLE;
         sensitivity = PC_SENSITIVITY;
+        wallHeight = PC_WALL_HEIGHT;
+        cameraHeight = PC_CAMERA_HEIGHT;
         isSmartPhone = true;
     } else {
         scale = PC_SCALE;
         verticalViewingAngle = PC_VERTICAL_VIEW_ANGLE;
         sensitivity = PC_SENSITIVITY;
+        wallHeight = PC_WALL_HEIGHT;
+        cameraHeight = PC_CAMERA_HEIGHT;
         isSmartPhone = false;
     }
     $('body').css({
@@ -53,8 +67,6 @@ $(function () {
 
     // 表示
     $('#version').text(VERSION);
-    // $('#maze-size').text(MAZE_SIZE[0] + ' x ' + MAZE_SIZE[1]);
-    $('#time').text('00:00:00');
 
     // 拡大縮小を禁止
     document.addEventListener('touchmove', function (event) {
@@ -67,6 +79,16 @@ $(function () {
     }, { passive: false });
 
     // スタート
-    game = new Game(MAZE_SIZE, FPS, verticalViewingAngle, sensitivity, VELOCITY);
+    game = new Game(
+        mazeSize=MAZE_SIZE,
+        fps=FPS,
+        verticalViewingAngle=verticalViewingAngle,
+        sensitivity=sensitivity,
+        velocity=VELOCITY,
+        pathWidth=1,
+        wallHeight=wallHeight,
+        wallThickness=0.3,
+        cameraHeight=cameraHeight
+    );
     game.start();
 });

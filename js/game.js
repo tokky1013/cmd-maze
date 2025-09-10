@@ -1,5 +1,5 @@
 class Game {
-    constructor(mazeSize, fps, verticalViewingAngle, sensitivity, velocity, pathWidth = 1, wallHeight = 1, wallThickness = 0.3, cameraHeight = 0.7) {
+    constructor(mazeSize, fps, verticalViewingAngle, sensitivity, velocity, pathWidth, wallHeight, wallThickness, cameraHeight) {
         this.display = new Display(verticalViewingAngle);
         this.field = [];
         this.mazeSize = mazeSize;
@@ -17,7 +17,7 @@ class Game {
                 theta: Math.PI,
                 phi: Math.PI / 2
             },
-            0.2,
+            0.4,
             velocity
         );
     }
@@ -29,6 +29,10 @@ class Game {
         const cameraHeight2 = mazeHeight / 2 / Math.tan(this.display.verticalViewingAngle / 2);
 
         this.player.cameraPos = new Vector([0, 0, Math.max(cameraHeight1, cameraHeight2)]);
+        this.player.cameraDir = {
+                theta: Math.PI,
+                phi: Math.PI / 2
+            };
         this.field = this.generateMaze();
         this.display.showView(this.field, this.player.cameraPos, this.player.cameraDir);
 
@@ -37,7 +41,7 @@ class Game {
         const dTheta = (Math.PI / 2 - this.player.cameraDir.theta) / viewpointTransitionTime;
         const dPhi = (Math.PI / 2 - this.player.cameraDir.phi) / viewpointTransitionTime;
 
-        const prepare = () => {
+        setTimeout(() => {
             // 毎フレームの処理を開始
             this.player.start(this.field[0]);
             this.display.start(this.field, this.player);
@@ -47,7 +51,6 @@ class Game {
             const initialCameraDirTheta = this.player.cameraDir.theta;
             const initialCameraDirPhi = this.player.cameraDir.phi;
 
-            let animationId;
             let initialTime;
             const animate = (now) => {
                 if (initialTime) {
@@ -65,13 +68,13 @@ class Game {
                     this.player.cameraDir.phi = Math.PI / 2;
 
                     this.setEvents();
+                    this.display.isGameStarted = true;
                 } else {
-                    animationId = requestAnimationFrame(animate);
+                    requestAnimationFrame(animate);
                 }
             };
-            animationId = requestAnimationFrame(animate);
-        }
-        setTimeout(prepare, 1000);
+            requestAnimationFrame(animate);
+        }, 1000);
     }
 
     stop() {
@@ -81,6 +84,13 @@ class Game {
     }
 
     setEvents() {
+        const goalHeight = - (this.pathWidth + this.wallThickness) * (this.mazeSize[1] + 1) / 2;
+        this.player.onMove = (p) => {
+            if(p.cameraPos.data[1] < goalHeight) {
+                this.stop();
+                // ゴール時の処理
+            }
+        }
         // ディスプレイのリサイズ
         const resize = () => this.display.resize();
         $(window).on("resize", resize);
@@ -257,6 +267,22 @@ class Game {
                 }
             }
         });
+
+        $(window).on('blur', () => {
+            joystickTouchId = null;
+            cameraTouchId = null;
+            
+            isDragging = false;
+            
+            wIsPressed = false;
+            aIsPressed = false;
+            sIsPressed = false;
+            dIsPressed = false;
+
+            this.player.isMoving = false;
+            $('#joystick').css({ transform: 'translate(0px, 0px)' });
+        });
+        $('#joystick-container').addClass('game-start');
     }
 
     clearEvents() {
@@ -264,6 +290,8 @@ class Game {
         $("#cmd-window").off();
         $(document).off();
         $("#joystick-container").off();
+        $('#joystick-container').removeClass('game-start');
+        this.player.onMove = null;
     }
 
     generateMaze() {
@@ -510,6 +538,8 @@ class Player {
         this.movingDir = [0, 0];
         this.animationId;
         this.last;
+
+        this.onMove = null;
     }
 
     // 
@@ -639,6 +669,11 @@ class Player {
                             }
                         }
                     }
+                }
+
+                // イベントを設定していた場合
+                if(this.onMove !== null) {
+                    this.onMove(this);
                 }
             }
             this.last = now;
