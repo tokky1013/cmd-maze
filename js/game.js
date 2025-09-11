@@ -83,12 +83,74 @@ class Game {
         this.player.stop();
     }
 
+    goal() {
+        // ゴール時の処理
+        this.stop();
+        const $clearMes = $('#clear-mes');
+        $clearMes.html('<br>Clear!<br><br>');
+
+        const checkInput = (val) => {
+            if(!val) {
+                this.addInput('Want to play again(Y/N)? ', checkInput);
+            } else if (val.toLowerCase() === 'y') {
+                $('#btns').removeClass('game-clear');
+                $clearMes.html('');
+                this.start();
+            } else {
+                const $div = $('<div>');
+                $div.text('Input other than Y is not accepted.')
+                $clearMes.append($div);
+                this.addInput('Want to play again(Y/N)? ', checkInput);
+            }
+            $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
+        }
+        this.addInput('Want to play again(Y/N)? ', checkInput);
+        
+        $('#btns').addClass('game-clear');
+        $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
+    }
+
+    addInput(text = '', onEnter = null) {
+        let $div = $('<div>', {
+            class: 'prompt-container'
+        });
+        $div.text(text);
+
+        let $input = $("<input>", {
+            type: "text",
+            class: 'prompt focus'
+        });
+        // $input.addClass();
+        // $input.on("keydown", (e) => {
+        $input.keypress(function (e) {
+            if (e.keyCode === 13) {
+                // エンターが押されたら
+                $(this).prop('disabled', true);
+                $(this).removeClass('focus');
+                $(this).off();
+
+                if (onEnter) {
+                    onEnter($(this).val());
+                }
+            }
+        });
+        $input.on("blur", function () {
+            // フォーカスが外れそうになったらまた戻す
+            $(this).focus();
+        });
+
+        $div.append($input);
+        $('#clear-mes').append($div);
+        $input.focus();
+
+        $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
+    }
+
     setEvents() {
         const goalHeight = - (this.pathWidth + this.wallThickness) * (this.mazeSize[1] + 1) / 2;
         this.player.onMove = (p) => {
             if (p.cameraPos.data[1] < goalHeight) {
-                this.stop();
-                // ゴール時の処理
+                this.goal();
             }
         }
         // ディスプレイのリサイズ

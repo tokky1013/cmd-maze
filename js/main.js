@@ -20,6 +20,12 @@ let mainColor0;
 let mainColor1;
 let mainColor2;
 
+function enter(value) {
+    const $input = $('input.focus');
+    $input.val(value);
+    $input.trigger(jQuery.Event("keypress", { key: "Enter", keyCode: 13, which: 13 }));
+}
+
 $(function () {
     // カスタムプロパティを取得
     mainColor0 = $(':root').css('--main-color-0');

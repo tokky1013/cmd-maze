@@ -87,7 +87,7 @@ header .window-img.close {
 }
 
 #cmd-window {
-    width: calc(100% - 10px);
+    width: 100%;
     padding: 10px 5px;
     background-color: var(--main-background-color-1);
     flex: 1;
@@ -109,6 +109,43 @@ header .window-img.close {
 
 #display {
     color: transparent;
+}
+
+/* 下の入力 */
+.prompt-container {
+    white-space: nowrap;
+    display: flex;
+    width: calc(100% - 10px);
+}
+input.prompt {
+    background-color: transparent;
+    color: var(--main-color-0);
+    border: none;
+    outline: none;
+
+    display: inline-block;
+    flex: 1;
+}
+
+#btns {
+    width: 100%;
+    height: 200px;
+
+    display: none;
+    justify-content: space-around;
+    align-items: center;
+}
+body.smartphone #btns.game-clear {
+    display: flex;
+}
+#btns button {
+    width: 100px;
+    height: 100px;
+    border: none;
+    background-color: #cecece;
+    border-radius: 20px;
+    font-size: 3rem;
+    color: var(--main-background-color-1);
 }
 /* joystick */
 #joystick-container {
