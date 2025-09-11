@@ -354,6 +354,8 @@ class Game {
         $("#joystick-container").off();
         $('#joystick-container').removeClass('game-start');
         this.player.onMove = null;
+        this.player.isMoving = false;
+        $joystick.css({ transform: 'translate(0px, 0px)' });
     }
 
     generateMaze() {
