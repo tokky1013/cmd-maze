@@ -91,7 +91,7 @@ class Game {
 
         const checkInput = (val) => {
             if (!val) {
-                this.addInput('Want to play again(Y/N)? ', checkInput);
+                this.addInput($clearMes, 'Want to play again(Y/N)? ', checkInput);
             } else if (val.toLowerCase() === 'y') {
                 $('#btns').removeClass('game-clear');
                 $clearMes.html('');
@@ -100,21 +100,21 @@ class Game {
                 const $div = $('<div>');
                 $div.text('Input other than Y is not accepted.')
                 $clearMes.append($div);
-                this.addInput('Want to play again(Y/N)? ', checkInput);
+                this.addInput($clearMes, 'Want to play again(Y/N)? ', checkInput);
             }
             $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
         }
-        this.addInput('Want to play again(Y/N)? ', checkInput);
+        this.addInput($clearMes, 'Want to play again(Y/N)? ', checkInput);
 
         $('#btns').addClass('game-clear');
         $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
     }
 
-    addInput(text = '', onEnter = null) {
+    addInput($box, text = '', onEnter = null) {
         let $div = $('<div>', {
             class: 'prompt-container'
         });
-        $div.text(text);
+        $div.html(text);
 
         let $input = $("<input>", {
             type: "text",
@@ -140,7 +140,7 @@ class Game {
         });
 
         $div.append($input);
-        $('#clear-mes').append($div);
+        $box.append($div);
         $input.focus();
 
         $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
@@ -330,9 +330,29 @@ class Game {
             }
         });
 
-        $(window).on('keydown', function (e) {
+        $(window).on('keydown', (e) => {
             if (e.keyCode === 67 && (e.ctrlKey || e.metaKey)) { // ctrl+c
-                console.log('ctrl+c')
+                this.stop();
+                this.display.close();
+
+                // 次の入力を要求
+                const $mesBox = $('#cmd-window div:first');     // ここ要件等
+
+                const checkInput = (val) => {
+                    if (!val) {
+                        this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
+                    } else if ('コマンドがpythonなら') {
+                        // cmd_maze.pyならリスタート。違ったらそんなファイル無いっていう
+                        // （リスタートの場合）ignooredHeight（display.additionalHeight?)みたいなん作って高さに足す？
+                    } else {
+                        // そんなコマンド無いっていう
+                    }
+                    $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
+                }
+                this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
+
+                $('#btns').addClass('game-clear');
+                $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
             }
         });
 

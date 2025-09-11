@@ -2,7 +2,7 @@
 // ベクトル
 class Vector {
     constructor(vector) {
-        if(vector instanceof Vector) {
+        if (vector instanceof Vector) {
             this.data = vector.data;
         } else {
             this.data = vector;
@@ -105,7 +105,7 @@ class Vector {
 // 行列
 class Tensor {
     constructor(tensor) {
-        if(tensor instanceof Tensor) {
+        if (tensor instanceof Tensor) {
             this.data = tensor.data;
         } else {
             this.data = tensor;
@@ -208,30 +208,30 @@ class AABB {
 
 class HolizontalTryangle {
     constructor(p1, p2, p3, color) {
-        if(Array.isArray(p1)) {
+        if (Array.isArray(p1)) {
             p1 = new Vector(p1);
         }
-        if(Array.isArray(p2)) {
+        if (Array.isArray(p2)) {
             p2 = new Vector(p2);
         }
-        if(Array.isArray(p3)) {
+        if (Array.isArray(p3)) {
             p3 = new Vector(p3);
         }
 
-        if(p1.data.length === 2) {
+        if (p1.data.length === 2) {
             p1.data.push(0);
         }
-        if(p2.data.length === 2) {
+        if (p2.data.length === 2) {
             p2.data.push(0);
         }
-        if(p3.data.length === 2) {
+        if (p3.data.length === 2) {
             p3.data.push(0);
         }
 
         this.p1 = p1;
         this.p2 = p2;
         this.p3 = p3;
-            
+
         this.color = color;
     }
 
@@ -239,7 +239,7 @@ class HolizontalTryangle {
         rayOrigin = new Vector(rayOrigin);
         rayDir = new Vector(rayDir);
         let t = -rayOrigin.data[2] / rayDir.data[2];
-        if(rayDir.data[2] === 0 || t < 0) return false;
+        if (rayDir.data[2] === 0 || t < 0) return false;
 
         let p = rayOrigin.plus(rayDir.multiplyBy(t));
 
@@ -262,7 +262,7 @@ class HolizontalTryangle {
 }
 // --------その他--------
 class Display {
-    constructor(verticalViewingAngle=Math.PI / 4) {
+    constructor(verticalViewingAngle = Math.PI / 4) {
         $('#time').text('00:00:00.00');
         $('#display').html('');
         this.verticalViewingAngle = verticalViewingAngle;
@@ -280,8 +280,8 @@ class Display {
     start(field, player) {
         const animate = (now) => {
             this.showView(field, player.cameraPos, player.cameraDir);
-            if(this.isGameStarted) {
-                if(this.startedAt === null) {
+            if (this.isGameStarted) {
+                if (this.startedAt === null) {
                     this.startedAt = now;
                 } else {
                     const timeDelta = now - this.startedAt
@@ -338,10 +338,10 @@ class Display {
 
                 // 光線が当たった先の色を取得
                 const rayColor = this.rayColor(layers, cameraPos, rayDir);
-                if(rayColor) {
-                    $('#char-' + i + '-' + j).css({color: rayColor});
+                if (rayColor) {
+                    $('#char-' + i + '-' + j).css({ color: rayColor });
                 } else {
-                    $('#char-' + i + '-' + j).css({color: 'transparent'});
+                    $('#char-' + i + '-' + j).css({ color: 'transparent' });
                 }
             }
         }
@@ -352,7 +352,7 @@ class Display {
             const layer = layers[i];
             for (let j = 0; j < layer.length; j++) {
                 const obj = layer[j];
-                
+
                 if (obj.isRayIntersect(rayOrigin, rayDir)) {
                     return obj.color;
                 }
@@ -445,5 +445,14 @@ class Display {
         $span.remove();
 
         return { width: charWidth, height: charHeight };
+    }
+
+    close() {
+        this.stop();
+        $('#display').html('');
+        this.displaySize = {
+            width: 0,
+            height: 0
+        };
     }
 }
