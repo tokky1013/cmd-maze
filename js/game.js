@@ -30,9 +30,9 @@ class Game {
 
         this.player.cameraPos = new Vector([0, 0, Math.max(cameraHeight1, cameraHeight2)]);
         this.player.cameraDir = {
-                theta: Math.PI,
-                phi: Math.PI / 2
-            };
+            theta: Math.PI,
+            phi: Math.PI / 2
+        };
         this.field = this.generateMaze();
         this.display.showView(this.field, this.player.cameraPos, this.player.cameraDir);
 
@@ -86,7 +86,7 @@ class Game {
     setEvents() {
         const goalHeight = - (this.pathWidth + this.wallThickness) * (this.mazeSize[1] + 1) / 2;
         this.player.onMove = (p) => {
-            if(p.cameraPos.data[1] < goalHeight) {
+            if (p.cameraPos.data[1] < goalHeight) {
                 this.stop();
                 // ゴール時の処理
             }
@@ -271,9 +271,9 @@ class Game {
         $(window).on('blur', () => {
             joystickTouchId = null;
             cameraTouchId = null;
-            
+
             isDragging = false;
-            
+
             wIsPressed = false;
             aIsPressed = false;
             sIsPressed = false;
@@ -543,7 +543,7 @@ class Player {
     }
 
     // 
-    start(objects) {
+    start(walls) {
         const animate = (now) => {
             if (this.isMoving) {
                 if (this.last) {
@@ -559,120 +559,32 @@ class Player {
                     this.cameraPos.data[0] += dCameraPosX;
                     this.cameraPos.data[1] += dCameraPosY;
 
-                    const cameraPosXBeforeCollision = this.cameraPos.data[0];
-                    const cameraPosYBeforeCollision = this.cameraPos.data[1];
+                    for (const wall of walls) {
+                        const nearestX = Math.min(Math.max(wall.min.data[0], this.cameraPos.data[0]), wall.max.data[0]);
+                        const nearestY = Math.min(Math.max(wall.min.data[1], this.cameraPos.data[1]), wall.max.data[1]);
 
-                    let playerMinX = this.cameraPos.data[0] - this.width / 2;
-                    let playerMinY = this.cameraPos.data[1] - this.width / 2;
-                    let playerMaxX = this.cameraPos.data[0] + this.width / 2;
-                    let playerMaxY = this.cameraPos.data[1] + this.width / 2;
+                        const dx = this.cameraPos.data[0] - nearestX;
+                        const dy = this.cameraPos.data[1] - nearestY;
 
-                    let isCrashedInXAxisDirection = false;
-                    let isCrashedInYAxisDirection = false;
+                        const dist2 = dx ** 2 + dy ** 2;
 
-                    let firstCollidedObject = null;
-                    let firstCollidedDir = null;
-
-                    for (const object of objects) {
-                        // x軸方向の衝突判定
-                        if (dCameraPosX > 0) {
-                            if (playerMinX < object.min.data[0] && object.min.data[0] < playerMaxX) {
-                                if (playerMinY < object.max.data[1] && object.min.data[1] < playerMaxY) {
-                                    this.cameraPos.data[0] = object.min.data[0] - this.width / 2;
-                                    isCrashedInXAxisDirection = true;
-                                    playerMinX = this.cameraPos.data[0] - this.width / 2;
-                                    playerMaxX = this.cameraPos.data[0] + this.width / 2;
-                                    if (firstCollidedObject === null) {
-                                        firstCollidedObject = object;
-                                        firstCollidedDir = 'x';
-                                    }
-                                }
-                            }
-                        } else if (dCameraPosX < 0) {
-                            if (playerMinX < object.max.data[0] && object.max.data[0] < playerMaxX) {
-                                if (playerMinY < object.max.data[1] && object.min.data[1] < playerMaxY) {
-                                    this.cameraPos.data[0] = object.max.data[0] + this.width / 2;
-                                    isCrashedInXAxisDirection = true;
-                                    playerMinX = this.cameraPos.data[0] - this.width / 2;
-                                    playerMaxX = this.cameraPos.data[0] + this.width / 2;
-                                    if (firstCollidedObject === null) {
-                                        firstCollidedObject = object;
-                                        firstCollidedDir = 'x';
-                                    }
-                                }
-                            }
+                        if (dist2 == 0) {
+                            this.cameraPos.data[0] -= dCameraPosX;
+                            this.cameraPos.data[1] -= dCameraPosY;
+                            return;
                         }
+                        if (dist2 < this.width ** 2) {
+                            const dist = Math.sqrt(dist2);
+                            const overlap = this.width - dist;
 
-                        // y軸方向の衝突判定
-                        if (dCameraPosY > 0) {
-                            if (playerMinY < object.min.data[1] && object.min.data[1] < playerMaxY) {
-                                if (playerMinX < object.max.data[0] && object.min.data[0] < playerMaxX) {
-                                    this.cameraPos.data[1] = object.min.data[1] - this.width / 2;
-                                    isCrashedInYAxisDirection = true;
-                                    playerMinY = this.cameraPos.data[1] - this.width / 2;
-                                    playerMaxY = this.cameraPos.data[1] + this.width / 2;
-                                    if (firstCollidedObject === null) {
-                                        firstCollidedObject = object;
-                                        firstCollidedDir = 'y';
-                                    }
-                                }
-                            }
-                        } else if (dCameraPosY < 0) {
-                            if (playerMinY < object.max.data[1] && object.max.data[1] < playerMaxY) {
-                                if (playerMinX < object.max.data[0] && object.min.data[0] < playerMaxX) {
-                                    this.cameraPos.data[1] = object.max.data[1] + this.width / 2;
-                                    isCrashedInYAxisDirection = true;
-                                    playerMinY = this.cameraPos.data[1] - this.width / 2;
-                                    playerMaxY = this.cameraPos.data[1] + this.width / 2;
-                                    if (firstCollidedObject === null) {
-                                        firstCollidedObject = object;
-                                        firstCollidedDir = 'y';
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (isCrashedInXAxisDirection && isCrashedInYAxisDirection) {
-                        // 両方衝突した場合本当に衝突したか確かめる
-                        if (firstCollidedDir === 'x') {
-                            // x軸方向
-                            playerMinX = cameraPosXBeforeCollision - this.width / 2;
-                            playerMaxX = cameraPosXBeforeCollision + this.width / 2;
-
-                            if (dCameraPosX > 0) {
-                                if (playerMinX >= firstCollidedObject.min.data[0] || firstCollidedObject.min.data[0] >= playerMaxX ||
-                                    playerMinY >= firstCollidedObject.max.data[1] || firstCollidedObject.min.data[1] >= playerMaxY) {
-                                    this.cameraPos.data[0] = cameraPosXBeforeCollision;
-                                }
-                            } else if (dCameraPosX < 0) {
-                                if (playerMinX >= firstCollidedObject.max.data[0] || firstCollidedObject.max.data[0] >= playerMaxX ||
-                                    playerMinY >= firstCollidedObject.max.data[1] || firstCollidedObject.min.data[1] >= playerMaxY) {
-                                    this.cameraPos.data[0] = cameraPosXBeforeCollision;
-                                }
-                            }
-                        } else {
-                            // y軸方向
-                            playerMinY = cameraPosYBeforeCollision - this.width / 2;
-                            playerMaxY = cameraPosYBeforeCollision + this.width / 2;
-
-                            if (dCameraPosY > 0) {
-                                if (playerMinY >= firstCollidedObject.min.data[1] || firstCollidedObject.min.data[1] >= playerMaxY ||
-                                    playerMinX >= firstCollidedObject.max.data[0] || firstCollidedObject.min.data[0] >= playerMaxX) {
-                                    this.cameraPos.data[1] = cameraPosYBeforeCollision;
-                                }
-                            } else if (dCameraPosY < 0) {
-                                if (playerMinY >= firstCollidedObject.max.data[1] || firstCollidedObject.max.data[1] >= playerMaxY ||
-                                    playerMinX >= firstCollidedObject.max.data[0] || firstCollidedObject.min.data[0] >= playerMaxX) {
-                                    this.cameraPos.data[1] = cameraPosYBeforeCollision;
-                                }
-                            }
+                            this.cameraPos.data[0] += dx * overlap / dist;
+                            this.cameraPos.data[1] += dy * overlap / dist;
                         }
                     }
                 }
 
                 // イベントを設定していた場合
-                if(this.onMove !== null) {
+                if (this.onMove !== null) {
                     this.onMove(this);
                 }
             }
@@ -685,5 +597,7 @@ class Player {
 
     stop() {
         cancelAnimationFrame(this.animationId);
+        this.isMoving = false;
+        this.last = null;
     }
 }

@@ -42,8 +42,7 @@ $(function () {
         wallHeight = SMARTPHONE_WALL_HEIGHT;
         cameraHeight = SMARTPHONE_CAMERA_HEIGHT;
         isSmartPhone = true;
-        $('#instruction-mes').css({display: 'none'});
-        $('#joystick-container').addClass('smartphone');
+        $('body').addClass('smartphone');
     } else if (ua.match(/iPad|Android/)) {
         scale = PC_SCALE;
         verticalViewingAngle = PC_VERTICAL_VIEW_ANGLE;
