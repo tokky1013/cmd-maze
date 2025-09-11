@@ -90,7 +90,7 @@ class Game {
         $clearMes.html('<br>Clear!<br><br>');
 
         const checkInput = (val) => {
-            if(!val) {
+            if (!val) {
                 this.addInput('Want to play again(Y/N)? ', checkInput);
             } else if (val.toLowerCase() === 'y') {
                 $('#btns').removeClass('game-clear');
@@ -105,7 +105,7 @@ class Game {
             $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
         }
         this.addInput('Want to play again(Y/N)? ', checkInput);
-        
+
         $('#btns').addClass('game-clear');
         $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
     }
@@ -330,6 +330,12 @@ class Game {
             }
         });
 
+        $(window).on('keydown', function (e) {
+            if (e.keyCode === 67 && (e.ctrlKey || e.metaKey)) { // ctrl+c
+                console.log('ctrl+c')
+            }
+        });
+
         $(window).on('blur', () => {
             joystickTouchId = null;
             cameraTouchId = null;
@@ -355,7 +361,7 @@ class Game {
         $('#joystick-container').removeClass('game-start');
         this.player.onMove = null;
         this.player.isMoving = false;
-        $joystick.css({ transform: 'translate(0px, 0px)' });
+        $('#joystick').css({ transform: 'translate(0px, 0px)' });
     }
 
     generateMaze() {
@@ -608,6 +614,7 @@ class Player {
 
     // 
     start(walls) {
+        this.walls = walls
         const animate = (now) => {
             if (this.isMoving) {
                 if (this.last) {
@@ -623,7 +630,7 @@ class Player {
                     this.cameraPos.data[0] += dCameraPosX;
                     this.cameraPos.data[1] += dCameraPosY;
 
-                    for (const wall of walls) {
+                    for (const wall of this.walls) {
                         const nearestX = Math.min(Math.max(wall.min.data[0], this.cameraPos.data[0]), wall.max.data[0]);
                         const nearestY = Math.min(Math.max(wall.min.data[1], this.cameraPos.data[1]), wall.max.data[1]);
 
