@@ -134,10 +134,17 @@ class Game {
                 }
             }
         });
-        $input.on("blur", function () {
-            // フォーカスが外れそうになったらまた戻す
-            $(this).focus();
-        });
+        if (isSmartPhone) {
+            $input.on("focus", function () {
+                // フォーカスが外れそうになったらまた戻す
+                $(this).blur();
+            });
+        } else {
+            $input.on("blur", function () {
+                // フォーカスが外れそうになったらまた戻す
+                $(this).focus();
+            });
+        }
 
         $div.append($input);
         $box.append($div);
@@ -336,17 +343,39 @@ class Game {
                 this.display.close();
 
                 // 次の入力を要求
-                const $mesBox = $('#cmd-window div:first');     // ここ要件等
+                const $mesBox = $('#cmd-window div:first');     // ここ要検討
 
                 const checkInput = (val) => {
+                    const initialHeight = $('#cmd-window div:first')[0].getBoundingClientRect().height;
+
+                    val = val.replace(/^\s+/, '');
+                    val = val.replace(/\s+$/, '');
                     if (!val) {
                         this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
-                    } else if ('コマンドがpythonなら') {
-                        // cmd_maze.pyならリスタート。違ったらそんなファイル無いっていう
-                        // （リスタートの場合）ignooredHeight（display.additionalHeight?)みたいなん作って高さに足す？
                     } else {
-                        // そんなコマンド無いっていう
+                        const args = val.split(/\s+/);
+                        if (args[0] === 'python' || args[0] === 'python3') {
+                            if (args[1] === 'cmd_maze.py') {
+
+                            } else {
+                                let $div = $('<div>', {
+                                    class: 'prompt-container'
+                                });
+                                $div.html(`python: can't open file 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user<span class="backslash">\\</span>` + args[1] + `': [Errno 2] No such file or directory<br><br>`);
+                                $mesBox.append($div);
+                                this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
+                            }
+                        } else {
+                            let $div = $('<div>', {
+                                class: 'prompt-container'
+                            });
+                            $div.html(`'` + args[0] + `' は、内部コマンドまたは外部コマンド、<br>
+                                操作可能なプログラムまたはバッチ ファイルとして認識されていません。<br><br>`);
+                            $mesBox.append($div);
+                            this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
+                        }
                     }
+                    console.log($('#cmd-window div:first')[0].getBoundingClientRect().height - initialHeight) // ここから再開
                     $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
                 }
                 this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);

@@ -271,6 +271,7 @@ class Display {
             width: 0,
             height: 0
         };
+        this.additionalHeight = 0;
         this.animationId;
         this.isGameStarted = false;
         this.startedAt = null;
@@ -371,7 +372,7 @@ class Display {
         const rectCmdWindow = $cmdWindow[0].getBoundingClientRect();
         const rectDiv = $('#cmd-window div:first')[0].getBoundingClientRect();
         const boxWidth = rectCmdWindow.width - 10;
-        const boxHeight = rectCmdWindow.height - rectDiv.height - 20;
+        const boxHeight = rectCmdWindow.height - rectDiv.height - 20 + this.additionalHeight;
 
         this.displaySize.width = Math.floor(boxWidth / this.charSize.width);
         this.displaySize.height = Math.floor(boxHeight / this.charSize.height);
