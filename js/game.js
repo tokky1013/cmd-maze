@@ -346,8 +346,6 @@ class Game {
                 const $mesBox = $('#cmd-window div:first');     // ここ要検討
 
                 const checkInput = (val) => {
-                    const initialHeight = $('#cmd-window div:first')[0].getBoundingClientRect().height;
-
                     val = val.replace(/^\s+/, '');
                     val = val.replace(/\s+$/, '');
                     if (!val) {
@@ -375,7 +373,6 @@ class Game {
                             this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
                         }
                     }
-                    console.log($('#cmd-window div:first')[0].getBoundingClientRect().height - initialHeight) // ここから再開
                     $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
                 }
                 this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);

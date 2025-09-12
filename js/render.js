@@ -271,10 +271,11 @@ class Display {
             width: 0,
             height: 0
         };
-        this.additionalHeight = 0;
         this.animationId;
         this.isGameStarted = false;
         this.startedAt = null;
+        
+        this.defaultShellHeight = $('#cmd-window div:first')[0].getBoundingClientRect().height;
         this.resize();
     }
 
@@ -370,9 +371,9 @@ class Display {
         const $cmdWindow = $('#cmd-window');
 
         const rectCmdWindow = $cmdWindow[0].getBoundingClientRect();
-        const rectDiv = $('#cmd-window div:first')[0].getBoundingClientRect();
+        // const rectDiv = $('#cmd-window div:first')[0].getBoundingClientRect();
         const boxWidth = rectCmdWindow.width - 10;
-        const boxHeight = rectCmdWindow.height - rectDiv.height - 20 + this.additionalHeight;
+        const boxHeight = rectCmdWindow.height - this.defaultShellHeight - 20;
 
         this.displaySize.width = Math.floor(boxWidth / this.charSize.width);
         this.displaySize.height = Math.floor(boxHeight / this.charSize.height);
