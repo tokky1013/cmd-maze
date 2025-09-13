@@ -263,7 +263,6 @@ class HolizontalTryangle {
 // --------その他--------
 class Display {
     constructor(verticalViewingAngle = Math.PI / 4) {
-        $('#time').text('00:00:00.00');
         $('#display').html('');
         this.verticalViewingAngle = verticalViewingAngle;
         this.charSize = this.getCharSize($('#cmd-window'));

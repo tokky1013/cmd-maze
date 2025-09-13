@@ -357,7 +357,7 @@ class Game {
                                 $('#time').removeAttr('id');
                                 let $div = $('<div>');
                                 $div.html(`<pre>Version&nbsp;&nbsp;&#009;:&nbsp;${VERSION}</pre>
-                                    <pre>Time&#009;&#009;:&nbsp;<span id="time"></span></pre>
+                                    <pre>Time&#009;&#009;:&nbsp;<span id="time">00:00:00.00</span></pre>
                                     <div id="instruction-mes">
                                         Press W/A/S/D to move: W = up, A = left, S = down, D = right.<br>
                                         Press CTRL+C to quit.
