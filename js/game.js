@@ -352,14 +352,24 @@ class Game {
                         this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
                     } else {
                         const args = val.split(/\s+/);
-                        if (args[0] === 'python' || args[0] === 'python3') {
+                        if ((args[0] === 'python' || args[0] === 'python3') && args[1]) {
                             if (args[1] === 'cmd_maze.py') {
-
+                                $('#time').removeAttr('id');
+                                let $div = $('<div>');
+                                $div.html(`<pre>Version&nbsp;&nbsp;&#009;:&nbsp;${VERSION}</pre>
+                                    <pre>Time&#009;&#009;:&nbsp;<span id="time"></span></pre>
+                                    <div id="instruction-mes">
+                                        Press W/A/S/D to move: W = up, A = left, S = down, D = right.<br>
+                                        Press CTRL+C to quit.
+                                    </div><br>`);
+                                $mesBox.append($div);
+                                this.display.resize();
+                                this.start();
                             } else {
                                 let $div = $('<div>', {
                                     class: 'prompt-container'
                                 });
-                                $div.html(`python: can't open file 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user<span class="backslash">\\</span>` + args[1] + `': [Errno 2] No such file or directory<br><br>`);
+                                $div.html(`python: can't open file 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user<span class="backslash">\\</span>${args[1]}': [Errno 2] No such file or directory<br><br>`);
                                 $mesBox.append($div);
                                 this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
                             }
@@ -367,7 +377,7 @@ class Game {
                             let $div = $('<div>', {
                                 class: 'prompt-container'
                             });
-                            $div.html(`'` + args[0] + `' は、内部コマンドまたは外部コマンド、<br>
+                            $div.html(`'${args[0]}' は、内部コマンドまたは外部コマンド、<br>
                                 操作可能なプログラムまたはバッチ ファイルとして認識されていません。<br><br>`);
                             $mesBox.append($div);
                             this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);

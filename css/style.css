@@ -126,6 +126,9 @@ input.prompt {
     display: inline-block;
     flex: 1;
 }
+input.prompt:disabled {
+    color: var(--main-color-0);
+}
 
 #btns {
     width: 100%;
