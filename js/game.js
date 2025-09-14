@@ -1,5 +1,7 @@
-commands = ['python cmd_maze.py'];
-commandIndex = 0;
+let commands = ['python cmd_maze.py'];
+let commandIndex = 1;
+let isHistoryShown = true;
+let originalCommand = null;
 
 class Game {
     constructor(mazeSize, fps, verticalViewingAngle, sensitivity, velocity, pathWidth, wallHeight, wallThickness, cameraHeight) {
@@ -346,6 +348,65 @@ class Game {
                 this.stop();
                 this.display.close();
 
+                const setCommandEvent = ($inputElem) => {
+                    if (commands[commands.length - 1]) {
+                        commands.push('');
+                    }
+                    $inputElem.on('keydown', (e) => {
+                        if (e.key === 'ArrowUp') {
+                            if (!isHistoryShown) {
+                                // 履歴が表示されていなければ表示する
+                                $inputElem.val(commands[commandIndex]);
+                                isHistoryShown = true;
+                            } else if (commandIndex >= 1) {
+                                // 一つ前のコマンド履歴があれは表示
+                                originalCommand = commands[--commandIndex];
+                                $inputElem.val(originalCommand);
+                            }
+                        } else if (e.key === 'ArrowDown') {
+                            if (!isHistoryShown) {
+                                // 履歴が表示されていなければ表示する
+                                $inputElem.val(commands[commandIndex]);
+                                isHistoryShown = true;
+                            } else if (commandIndex < commands.length - 1) {
+                                // 一つあとのコマンド履歴があれは表示
+                                originalCommand = commands[++commandIndex];
+                                $inputElem.val(originalCommand);
+                            }
+                        } else if (e.key === 'Enter') {
+                            // エンターが押されたら
+                            const val = $inputElem.val();
+                            if ('' !== val) {
+                                if (originalCommand === null) {
+                                    if (!commands[commands.length - 1]) {
+                                        commands[commands.length - 1] = val;
+                                    } else {
+                                        commands.push(val);
+                                    }
+                                    commandIndex = commands.length;
+                                    isHistoryShown = true;
+                                } else {
+                                    if (originalCommand === val) {
+                                        isHistoryShown = false;
+                                    } else {
+                                        if (!commands[commands.length - 1]) {
+                                            commands[commands.length - 1] = val;
+                                        } else {
+                                            commands.push(val);
+                                        }
+                                        commandIndex = commands.length;
+                                        isHistoryShown = true;
+                                    }
+                                }
+                            }
+                            originalCommand = null;
+                        }
+                        if(!originalCommand) {
+                            originalCommand = null;
+                        }
+                    });
+                };
+
                 // 次の入力を要求
                 const $mesBox = $('#cmd-window div:first');     // ここ要検討
 
@@ -356,6 +417,7 @@ class Game {
                     val = val.replace(/\s+$/, '');
                     if (!val) {
                         $additionalInput = this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
+                        setCommandEvent($additionalInput);
                     } else {
                         const args = val.split(/\s+/);
                         if ((args[0] === 'python' || args[0] === 'python3') && args[1]) {
@@ -378,6 +440,7 @@ class Game {
                                 $div.html(`python: can't open file 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user<span class="backslash">\\</span>${args[1]}': [Errno 2] No such file or directory<br><br>`);
                                 $mesBox.append($div);
                                 $additionalInput = this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
+                                setCommandEvent($additionalInput);
                             }
                         } else {
                             let $div = $('<div>', {
@@ -387,69 +450,14 @@ class Game {
                                 操作可能なプログラムまたはバッチ ファイルとして認識されていません。<br><br>`);
                             $mesBox.append($div);
                             $additionalInput = this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
+                            setCommandEvent($additionalInput);
                         }
                     }
                     $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
-
-                    if ($additionalInput) {
-                        commands.push('');
-                        commandIndex = commands.length - 1;
-                        $additionalInput.on('keydown', (e) => {
-                            commands[commandIndex] = $additionalInput.val();
-                            if (e.key === 'ArrowUp') {
-                                commands[commandIndex] = $additionalInput.val();
-                                if (commandIndex >= 1) {
-                                    $additionalInput.val(commands[--commandIndex]);
-                                }
-                            } else if (e.key === 'ArrowDown') {
-                                commands[commandIndex] = $additionalInput.val();
-                                if (commandIndex < commands.length - 1) {
-                                    $additionalInput.val(commands[++commandIndex]);
-                                }
-                            } else if (e.key === 'Enter') {
-                                // エンターが押されたら
-                                commands.splice(commandIndex, 1);
-                                for (let i = 0; i < commands.length; i++) {
-                                    if (!commands[i]) {
-                                        commands.splice(i, 1);
-                                    }
-                                }
-                                if ($additionalInput.val()) {
-                                    commands.push($additionalInput.val());
-                                }
-                            }
-                        });
-                    }
                 }
                 const $input = this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
 
-                commands.push('');
-                commandIndex = commands.length - 1;
-                $input.on('keydown', (e) => {
-                    commands[commandIndex] = $input.val();
-                    if (e.key === 'ArrowUp') {
-                        commands[commandIndex] = $input.val();
-                        if (commandIndex >= 1) {
-                            $input.val(commands[--commandIndex]);
-                        }
-                    } else if (e.key === 'ArrowDown') {
-                        commands[commandIndex] = $input.val();
-                        if (commandIndex < commands.length - 1) {
-                            $input.val(commands[++commandIndex]);
-                        }
-                    } else if (e.key === 'Enter') {
-                        // エンターが押されたら
-                        commands.splice(commandIndex, 1);
-                        for (let i = 0; i < commands.length; i++) {
-                            if (!commands[i]) {
-                                commands.splice(i, 1);
-                            }
-                        }
-                        if ($input.val()) {
-                            commands.push($input.val());
-                        }
-                    }
-                });
+                setCommandEvent($input);
 
                 $('#btns').addClass('game-clear');
                 $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);

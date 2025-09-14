@@ -195,8 +195,3 @@ body.smartphone #joystick-container.game-start {
     width: 9px;
     text-align: center;
 }
-
-.backslash.selected {
-    background-color: white;
-    color: black;
-}
