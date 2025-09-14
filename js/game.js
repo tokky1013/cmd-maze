@@ -1,3 +1,6 @@
+commands = ['python cmd_maze.py'];
+commandIndex = 0;
+
 class Game {
     constructor(mazeSize, fps, verticalViewingAngle, sensitivity, velocity, pathWidth, wallHeight, wallThickness, cameraHeight) {
         this.display = new Display(verticalViewingAngle);
@@ -8,7 +11,6 @@ class Game {
         this.wallHeight = wallHeight;
         this.wallThickness = wallThickness;
         this.cameraHeight = cameraHeight;
-
         this.sensitivity = sensitivity;
 
         this.player = new Player(
@@ -151,6 +153,7 @@ class Game {
         $input.focus();
 
         $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
+        return $input;
     }
 
     setEvents() {
@@ -337,8 +340,9 @@ class Game {
             }
         });
 
+        // ctrl+c
         $(window).on('keydown', (e) => {
-            if (e.keyCode === 67 && (e.ctrlKey || e.metaKey)) { // ctrl+c
+            if (e.keyCode === 67 && (e.ctrlKey || e.metaKey)) {
                 this.stop();
                 this.display.close();
 
@@ -346,10 +350,12 @@ class Game {
                 const $mesBox = $('#cmd-window div:first');     // ここ要検討
 
                 const checkInput = (val) => {
+                    let $additionalInput;
+
                     val = val.replace(/^\s+/, '');
                     val = val.replace(/\s+$/, '');
                     if (!val) {
-                        this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
+                        $additionalInput = this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
                     } else {
                         const args = val.split(/\s+/);
                         if ((args[0] === 'python' || args[0] === 'python3') && args[1]) {
@@ -371,7 +377,7 @@ class Game {
                                 });
                                 $div.html(`python: can't open file 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user<span class="backslash">\\</span>${args[1]}': [Errno 2] No such file or directory<br><br>`);
                                 $mesBox.append($div);
-                                this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
+                                $additionalInput = this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
                             }
                         } else {
                             let $div = $('<div>', {
@@ -380,12 +386,70 @@ class Game {
                             $div.html(`'${args[0]}' は、内部コマンドまたは外部コマンド、<br>
                                 操作可能なプログラムまたはバッチ ファイルとして認識されていません。<br><br>`);
                             $mesBox.append($div);
-                            this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
+                            $additionalInput = this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
                         }
                     }
                     $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
+
+                    if ($additionalInput) {
+                        commands.push('');
+                        commandIndex = commands.length - 1;
+                        $additionalInput.on('keydown', (e) => {
+                            commands[commandIndex] = $additionalInput.val();
+                            if (e.key === 'ArrowUp') {
+                                commands[commandIndex] = $additionalInput.val();
+                                if (commandIndex >= 1) {
+                                    $additionalInput.val(commands[--commandIndex]);
+                                }
+                            } else if (e.key === 'ArrowDown') {
+                                commands[commandIndex] = $additionalInput.val();
+                                if (commandIndex < commands.length - 1) {
+                                    $additionalInput.val(commands[++commandIndex]);
+                                }
+                            } else if (e.key === 'Enter') {
+                                // エンターが押されたら
+                                commands.splice(commandIndex, 1);
+                                for (let i = 0; i < commands.length; i++) {
+                                    if (!commands[i]) {
+                                        commands.splice(i, 1);
+                                    }
+                                }
+                                if ($additionalInput.val()) {
+                                    commands.push($additionalInput.val());
+                                }
+                            }
+                        });
+                    }
                 }
-                this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
+                const $input = this.addInput($mesBox, 'C:<span class="backslash">\\</span>Users<span class="backslash">\\</span>user>', checkInput);
+
+                commands.push('');
+                commandIndex = commands.length - 1;
+                $input.on('keydown', (e) => {
+                    commands[commandIndex] = $input.val();
+                    if (e.key === 'ArrowUp') {
+                        commands[commandIndex] = $input.val();
+                        if (commandIndex >= 1) {
+                            $input.val(commands[--commandIndex]);
+                        }
+                    } else if (e.key === 'ArrowDown') {
+                        commands[commandIndex] = $input.val();
+                        if (commandIndex < commands.length - 1) {
+                            $input.val(commands[++commandIndex]);
+                        }
+                    } else if (e.key === 'Enter') {
+                        // エンターが押されたら
+                        commands.splice(commandIndex, 1);
+                        for (let i = 0; i < commands.length; i++) {
+                            if (!commands[i]) {
+                                commands.splice(i, 1);
+                            }
+                        }
+                        if ($input.val()) {
+                            commands.push($input.val());
+                        }
+                    }
+                });
 
                 $('#btns').addClass('game-clear');
                 $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
@@ -574,43 +638,6 @@ class Game {
             objects,
             [tryangle1, tryangle2]
         ];
-
-
-        // let maze = Array.from({ length: this.mazeSize[1] * 2 + 1 }, () => Array(this.mazeSize[0] * 2 + 1).fill('    '));
-
-        // for (let i = 0; i < this.mazeSize[1] * 2 + 1; i++) {
-        //     maze[i][0] = '####';
-        //     maze[i][this.mazeSize[0] * 2] = '####';
-        // }
-        // for (let i = 0; i < this.mazeSize[0] * 2 + 1; i++) {
-        //     maze[0][i] = '####';
-        //     maze[this.mazeSize[1] * 2][i] = '####';
-        // }
-
-        // for (let i = 0; i < holizontalWalls.length; i++) {
-        //     for (let j = 0; j < holizontalWalls[i].length; j++) {
-        //         if(holizontalWalls[i][j]) {
-        //             maze[i * 2 + 2][j * 2] = '####';
-        //             maze[i * 2 + 2][j * 2 + 1] = '####';
-        //             maze[i * 2 + 2][j * 2 + 2] = '####';
-        //         }
-        //     }
-        // }
-
-        // for (let i = 0; i < verticalWalls.length; i++) {
-        //     for (let j = 0; j < verticalWalls[i].length; j++) {
-        //         if(verticalWalls[i][j]) {
-        //             maze[i * 2][j * 2 + 2] = '####';
-        //             maze[i * 2 + 1][j * 2 + 2] = '####';
-        //             maze[i * 2 + 2][j * 2 + 2] = '####';
-        //         }
-        //     }
-        // }
-
-        // for (const row of maze) {
-        //     console.log(row.join(''));
-        // }
-
 
         function generate(cx, cy, mazeSize) {
             visited[cy][cx] = true;
