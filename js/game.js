@@ -24,6 +24,10 @@ class Game {
             0.4,
             velocity
         );
+        this.wIsPressed = false;
+        this.aIsPressed = false;
+        this.sIsPressed = false;
+        this.dIsPressed = false;
     }
 
     start() {
@@ -108,7 +112,27 @@ class Game {
             }
             $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
         }
-        this.addInput($clearMes, 'Want to play again(Y/N)? ', checkInput);
+        const $input = this.addInput($clearMes, 'Want to play again(Y/N)? ', checkInput);
+        if (this.wIsPressed || this.aIsPressed || this.sIsPressed || this.dIsPressed) {
+            $input.off('blur');
+            $input.blur();
+            $(document).on("keyup", (e) => {
+                if (e.code === "KeyW") {
+                    this.wIsPressed = false;
+                } else if (e.code === "KeyA") {
+                    this.aIsPressed = false;
+                } else if (e.code === "KeyS") {
+                    this.sIsPressed = false;
+                } else if (e.code === "KeyD") {
+                    this.dIsPressed = false;
+                }
+
+                if (!(this.wIsPressed || this.aIsPressed || this.sIsPressed || this.dIsPressed)) {
+                    $(document).off();
+                    $input.focus();
+                }
+            });
+        }
 
         $('#btns').addClass('game-clear');
         $('#cmd-window').scrollTop($('#cmd-window')[0].scrollHeight);
@@ -248,28 +272,24 @@ class Game {
 
         // ----移動----
         // pc
-        let wIsPressed = false;
-        let aIsPressed = false;
-        let sIsPressed = false;
-        let dIsPressed = false;
         $(document).on("keydown", (e) => {
             if (e.code === "KeyW") {
                 this.player.isMoving = true;
-                wIsPressed = true;
+                this.wIsPressed = true;
             } else if (e.code === "KeyA") {
                 this.player.isMoving = true;
-                aIsPressed = true;
+                this.aIsPressed = true;
             } else if (e.code === "KeyS") {
                 this.player.isMoving = true;
-                sIsPressed = true;
+                this.sIsPressed = true;
             } else if (e.code === "KeyD") {
                 this.player.isMoving = true;
-                dIsPressed = true;
+                this.dIsPressed = true;
             }
 
             // 動く方向を計算
-            let movingDirX = (wIsPressed ? 1 : 0) + (sIsPressed ? -1 : 0);
-            let movingDirY = (dIsPressed ? 1 : 0) + (aIsPressed ? -1 : 0);
+            let movingDirX = (this.wIsPressed ? 1 : 0) + (this.sIsPressed ? -1 : 0);
+            let movingDirY = (this.dIsPressed ? 1 : 0) + (this.aIsPressed ? -1 : 0);
             const len = movingDirX ** 2 + movingDirY ** 2;
             if (len !== 0) {
                 movingDirX /= len;
@@ -280,21 +300,21 @@ class Game {
 
         $(document).on("keyup", (e) => {
             if (e.code === "KeyW") {
-                wIsPressed = false;
+                this.wIsPressed = false;
             } else if (e.code === "KeyA") {
-                aIsPressed = false;
+                this.aIsPressed = false;
             } else if (e.code === "KeyS") {
-                sIsPressed = false;
+                this.sIsPressed = false;
             } else if (e.code === "KeyD") {
-                dIsPressed = false;
+                this.dIsPressed = false;
             }
 
-            if (!(wIsPressed || aIsPressed || sIsPressed || dIsPressed)) {
+            if (!(this.wIsPressed || this.aIsPressed || this.sIsPressed || this.dIsPressed)) {
                 this.player.isMoving = false;
             } else {
                 // 動く方向を計算
-                let movingDirX = (wIsPressed ? 1 : 0) + (sIsPressed ? -1 : 0);
-                let movingDirY = (dIsPressed ? 1 : 0) + (aIsPressed ? -1 : 0);
+                let movingDirX = (this.wIsPressed ? 1 : 0) + (this.sIsPressed ? -1 : 0);
+                let movingDirY = (this.dIsPressed ? 1 : 0) + (this.aIsPressed ? -1 : 0);
                 this.player.movingDir = [movingDirX, movingDirY];
             }
         });
@@ -401,7 +421,7 @@ class Game {
                             }
                             originalCommand = null;
                         }
-                        if(!originalCommand) {
+                        if (!originalCommand) {
                             originalCommand = null;
                         }
                     });
@@ -470,10 +490,10 @@ class Game {
 
             isDragging = false;
 
-            wIsPressed = false;
-            aIsPressed = false;
-            sIsPressed = false;
-            dIsPressed = false;
+            this.wIsPressed = false;
+            this.aIsPressed = false;
+            this.sIsPressed = false;
+            this.dIsPressed = false;
 
             this.player.isMoving = false;
             $('#joystick').css({ transform: 'translate(0px, 0px)' });
