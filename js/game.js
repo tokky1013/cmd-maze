@@ -100,7 +100,7 @@ class Game {
         const checkInput = (val) => {
             if (!val) {
                 this.addInput($clearMes, 'Want to play again(Y/N)? ', checkInput);
-            } else if (val.toLowerCase() === 'y') {
+            } else if (val.toLowerCase() === 'y' || val === 'ｙ') {
                 $('#btns').removeClass('game-clear');
                 $clearMes.html('');
                 this.start();
